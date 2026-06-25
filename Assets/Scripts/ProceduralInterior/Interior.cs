@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Splines;
 
@@ -11,6 +11,8 @@ public class Interior : MonoBehaviour
     private SplineContainer _areas;
     private int[,] _samples;
     int sizeX, sizeY;
+
+    private Dictionary<int, Room> _rooms;
 
     [SerializeField] private Vector3 start, end;
 
@@ -38,6 +40,8 @@ public class Interior : MonoBehaviour
 
         if (!_samplerSettings || _areas.Splines.Count == 0 || splineIndex >= _areas.Splines.Count) return;
 
+        // Calculate that area that covers the samples
+
         Spline area = _areas.Splines[splineIndex];
         if (area.Count == 0) return;
 
@@ -62,20 +66,81 @@ public class Interior : MonoBehaviour
         sizeX = Mathf.CeilToInt((end.x - start.x) / _samplerSettings.SampleDimension.x);
         sizeY = Mathf.CeilToInt((end.z - start.z) / _samplerSettings.SampleDimension.x);
 
+        // Create the samples and determine the valid samples
         _samples = new int[sizeX,sizeY];
+        _rooms = new Dictionary<int, Room>();
 
+        List<Vector2Int> validSamples = new List<Vector2Int>();
         for(int u = 0; u < sizeX; u++)
         {
             for(int v = 0; v < sizeY; v++)
             {
                 Vector3 worldPoint = SamplePointToWorldPoint(u,v);
-                Debug.Log(worldPoint);
-                _samples[u, v] = SamplerHelperFunctions.IsPointInsidePolygon(polygon, new Vector2(worldPoint.x, worldPoint.z)) ? 0 : -1;
+
+                // we want to invalidate every sample points first
+                _samples[u, v] = -1;
+
+                // and put valid samples points to a list to be parsed and converted to a valid point
+                if (SamplerHelperFunctions.IsPointInsidePolygon(polygon, new Vector2(worldPoint.x, worldPoint.z)))
+                    validSamples.Add(new Vector2Int(u ,v));
             }
+        }
+
+        GenerateRooms(validSamples);
+    }
+
+    public void GenerateRooms(List<Vector2Int> validSamples)
+    {
+        if (!_samplerSettings || (_samples?.Length ?? 0) == 0 || validSamples.Count == 0) return;
+
+        int roomCount = UnityEngine.Random.Range(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
+        int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
+
+        while (validSamples.Count > 0 && _rooms.Count < roomCount)
+        {
+            int targetSize = roomCount > 0 ? (validSamples.Count/ roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset) : validSamples.Count;
+
+            List<Vector2Int> roomSamples = new List<Vector2Int>();
+            List<Vector2Int> cardinalSamples = new List<Vector2Int>();
+
+            int roomIndex = _rooms.Count;
+            Debug.Log($"roomIndex {roomIndex}");
+
+            // get a starting point to generate the room and add to the cardinalSamples list
+            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, false));
+
+            // Generate the room recursively
+            GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
+
+            // TODO: Check if need to meld room
+
+            // Create room
+            _rooms.Add(roomIndex, new Room());
         }
     }
 
-    public Vector3 SamplePointToWorldPoint(int x, int z, bool bCenterH = true)
+    private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
+    {
+        // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
+        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, true);
+        validSamples.Remove(currentSample);
+
+        // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
+        _samples[currentSample.x, currentSample.y] = roomIndex;
+        roomSamples.Add(currentSample);
+
+        // TODO: Extend the room in the 4 cardinal directions
+
+        // collect the cardinal samples for currentSample
+        SamplerHelperFunctions.GetCardinalSample(validSamples, cardinalSamples, currentSample);
+
+        // Call this function recursively until roomSamples.Count equal or exceed targetSize or cardinalSamples is empty
+        /*if(roomSamples.Count >= targetSize || cardinalSamples.Count > 0)
+            GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);*/
+
+    }
+
+    public Vector3 SamplePointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV =false)
     {
         if (!_samplerSettings) return Vector3.zero;
 
@@ -92,6 +157,9 @@ public class Interior : MonoBehaviour
             worldPoint.z += (z * _samplerSettings.SampleDimension.x);
         }
 
+        if (bCenterV)
+            worldPoint.y += (_samplerSettings.SampleDimension.y / 2);
+
         return worldPoint;
     }
 
@@ -100,27 +168,29 @@ public class Interior : MonoBehaviour
         if (_areas == null)
             _areas = GetComponent<SplineContainer>();
 
-        if ((_samples?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
+        if (!_samplerSettings || (_samples?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
 
         Spline area = _areas.Splines[_splineToDebug];
 
         Gizmos.DrawLine(new Vector3(start.x, start.y + 0.5f, start.z), new Vector3(start.x, start.y - 0.5f, start.z));
         Gizmos.DrawLine(new Vector3(end.x, end.y + 0.5f, end.z), new Vector3(end.x, end.y - 0.5f, end.z));
 
+        Gizmos.color = Color.yellow;
         for(int i = 0; i < area.Count; i++)
         {
-            Gizmos.DrawSphere(_areas.transform.TransformPoint(area[i].Position), 0.05f);
+            Gizmos.DrawWireSphere(_areas.transform.TransformPoint(area[i].Position), 0.05f);
         }
+
+        Gizmos.color = Color.green;
 
         for (int u = 0; u < sizeX; u++)
         {
             for (int v = 0; v < sizeY; v++)
             {
+                if (_samples[u, v] == -1) continue;
                 Debug.Log(_samples[u, v]);
-                Gizmos.color = _samples[u, v] > -1 ? Color.green : Color.red;
-
                 Vector3 worldPoint = SamplePointToWorldPoint(u, v);
-                Gizmos.DrawSphere(_areas.transform.TransformPoint(worldPoint), 0.1f);
+                Gizmos.DrawWireCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x, 0.0f, _samplerSettings.SampleDimension.x));
             }
         }
     }

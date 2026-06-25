@@ -10,5 +10,12 @@ public class SamplerSettings : ScriptableObject
     /// </summary>
     [SerializeField]
     private Vector2 _sampleDimension = new Vector2(2.0f, 3.0f);
+    [SerializeField] private int _minRoomCount = 5;
+    [SerializeField] private int _maxRoomCount = 10;
+    [SerializeField] private int _offset = 5;
+
     public Vector2 SampleDimension => _sampleDimension;
+    public int MinRoomCount => _minRoomCount;
+    public int MaxRoomCount => _maxRoomCount;
+    public int Offset => _offset;
 }

@@ -479,7 +479,7 @@ MonoBehaviour:
   - m_EditModeType: 1
     m_Knots:
     - Position:
-        x: -0.5
+        x: -25.8
         y: 0
         z: -0.5
       TangentIn:
@@ -497,9 +497,9 @@ MonoBehaviour:
           z: 0
           w: 1
     - Position:
-        x: -0.5
+        x: -25.8
         y: 0
-        z: 9
+        z: 20.8
       TangentIn:
         x: 0
         y: 0
@@ -515,9 +515,9 @@ MonoBehaviour:
           z: 0
           w: 1
     - Position:
-        x: 9.27
+        x: 19.7
         y: 0
-        z: 9
+        z: 20.8
       TangentIn:
         x: 0
         y: 0
@@ -533,9 +533,9 @@ MonoBehaviour:
           z: 0
           w: 1
     - Position:
-        x: 9.27
+        x: 19.75
         y: 0
-        z: -3
+        z: -24.75
       TangentIn:
         x: 0
         y: 0
@@ -551,9 +551,9 @@ MonoBehaviour:
           z: 0
           w: 0
     - Position:
-        x: 2.31
+        x: -14.4
         y: 0
-        z: -3
+        z: -24.5
       TangentIn:
         x: 0
         y: 0
@@ -568,6 +568,42 @@ MonoBehaviour:
           y: -0.70710677
           z: -0
           w: 0.70710677
+    - Position:
+        x: -14.4
+        y: 0
+        z: -12.4
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: -0
+          y: 0.00020920981
+          z: -0
+          w: 1
+    - Position:
+        x: 2.31
+        y: 0
+        z: -12.4
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: -0
+          y: 0.45821127
+          z: -0
+          w: 0.8888433
     - Position:
         x: 2.31
         y: 0
@@ -587,6 +623,10 @@ MonoBehaviour:
           z: -0
           w: 0.70710677
     m_MetaData:
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
     - Mode: 1
       Tension: 0.5
     - Mode: 1
@@ -646,7 +686,7 @@ MonoBehaviour:
       - Spline: 1
         Knot: 0
       - Spline: 0
-        Knot: 5
+        Knot: 7
 --- !u!4 &2076175524
 Transform:
   m_ObjectHideFlags: 0
@@ -656,7 +696,7 @@ Transform:
   m_GameObject: {fileID: 2076175522}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -2.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -675,8 +715,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interior
   _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
-  start: {x: -0.5, y: 0, z: -3}
-  end: {x: 9.27, y: 0, z: 9}
+  start: {x: -25.8, y: 0, z: -27.45}
+  end: {x: 19.75, y: 0, z: 18.099998}
   _drawDebug: 1
   _splineToDebug: 0
 --- !u!1660057539 &9223372036854775807
