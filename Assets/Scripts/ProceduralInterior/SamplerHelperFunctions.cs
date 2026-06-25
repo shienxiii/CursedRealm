@@ -23,14 +23,15 @@ public static class SamplerHelperFunctions
             { count++; }
         }
         Vector2Int s = new(1,1);
-        Debug.Log(count % 2 == 1);
         return count % 2 == 1;
     }
 
 
     // Use UnityEngine.Random to get a random element on the provided list and optionally remove from list
-    public static T GetRandomElement<T>(List<T> list, bool bRemoveFromList = false)
+    public static T GetRandomSample<T>(List<T> list, bool bRemoveFromList = false)
     {
+        //TODO: Figure out for when list is empty
+
         T element = list[UnityEngine.Random.Range(0, list.Count)];
 
         if (bRemoveFromList)

@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: SamplerSettings
   m_EditorClassIdentifier: Assembly-CSharp::SamplerSettings
   _sampleDimension: {x: 2, y: 3}
+  _minRoomCount: 7
+  _maxRoomCount: 15
+  _offset: 3

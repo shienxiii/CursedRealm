@@ -96,18 +96,17 @@ public class Interior : MonoBehaviour
         int roomCount = UnityEngine.Random.Range(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
-        while (validSamples.Count > 0 && _rooms.Count < roomCount)
+        while (validSamples.Count > 0 && roomCount - _rooms.Count > 0)
         {
-            int targetSize = roomCount > 0 ? (validSamples.Count/ roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset) : validSamples.Count;
+            int targetSize = roomCount - _rooms.Count > 0 ? (validSamples.Count/ roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset) : validSamples.Count;
 
             List<Vector2Int> roomSamples = new List<Vector2Int>();
             List<Vector2Int> cardinalSamples = new List<Vector2Int>();
 
             int roomIndex = _rooms.Count;
-            Debug.Log($"roomIndex {roomIndex}");
 
             // get a starting point to generate the room and add to the cardinalSamples list
-            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, false));
+            cardinalSamples.Add(SamplerHelperFunctions.GetRandomSample(validSamples, false));
 
             // Generate the room recursively
             GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
@@ -122,22 +121,44 @@ public class Interior : MonoBehaviour
     private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
     {
         // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
-        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, true);
+        Vector2Int currentSample = SamplerHelperFunctions.GetRandomSample(cardinalSamples, true);
         validSamples.Remove(currentSample);
 
         // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
         _samples[currentSample.x, currentSample.y] = roomIndex;
         roomSamples.Add(currentSample);
 
-        // TODO: Extend the room in the 4 cardinal directions
+        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(1, 0), roomIndex);
+        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(-1, 0), roomIndex);
+        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(0, 1), roomIndex);
+        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(0, -1), roomIndex);
 
         // collect the cardinal samples for currentSample
         SamplerHelperFunctions.GetCardinalSample(validSamples, cardinalSamples, currentSample);
 
         // Call this function recursively until roomSamples.Count equal or exceed targetSize or cardinalSamples is empty
-        /*if(roomSamples.Count >= targetSize || cardinalSamples.Count > 0)
-            GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);*/
+        if (roomSamples.Count < targetSize && cardinalSamples.Count > 0)
+            GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
 
+    }
+
+    private void ExtendRoomInDirection(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, Vector2Int fromSample, Vector2Int direction, int roomIndex)
+    {
+        Vector2Int currentSample = fromSample + direction;
+
+        if (!cardinalSamples.Contains(currentSample)) return;
+
+        // we got a valid sample, include it in the room and remove from AvailableSamples and CardinalSamples
+        _samples[currentSample.x, currentSample.y] = roomIndex;
+        roomSamples.Add(currentSample);
+        validSamples.Remove(currentSample);
+        cardinalSamples.Remove(currentSample);
+
+        // run this function recursively until reaching a sample point that's not in CardinalSamples
+        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, direction, roomIndex);
+
+        // collect the cardinal samples for currentSample
+        SamplerHelperFunctions.GetCardinalSample(validSamples, cardinalSamples, currentSample);
     }
 
     public Vector3 SamplePointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV =false)
@@ -181,16 +202,14 @@ public class Interior : MonoBehaviour
             Gizmos.DrawWireSphere(_areas.transform.TransformPoint(area[i].Position), 0.05f);
         }
 
-        Gizmos.color = Color.green;
-
         for (int u = 0; u < sizeX; u++)
         {
             for (int v = 0; v < sizeY; v++)
             {
                 if (_samples[u, v] == -1) continue;
-                Debug.Log(_samples[u, v]);
+                Gizmos.color = _rooms[_samples[u, v]].debugColor;
                 Vector3 worldPoint = SamplePointToWorldPoint(u, v);
-                Gizmos.DrawWireCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x, 0.0f, _samplerSettings.SampleDimension.x));
+                Gizmos.DrawWireCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.3f, 0.0f, _samplerSettings.SampleDimension.x - 0.3f));
             }
         }
     }
