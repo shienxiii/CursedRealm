@@ -96,7 +96,7 @@ public class Interior : MonoBehaviour
         int roomCount = UnityEngine.Random.Range(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
-        while (validSamples.Count > 0 && roomCount - _rooms.Count > 0)
+        while (validSamples.Count > 0)
         {
             int targetSize = roomCount - _rooms.Count > 0 ? (validSamples.Count/ roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset) : validSamples.Count;
 
@@ -106,22 +106,23 @@ public class Interior : MonoBehaviour
             int roomIndex = _rooms.Count;
 
             // get a starting point to generate the room and add to the cardinalSamples list
-            cardinalSamples.Add(SamplerHelperFunctions.GetRandomSample(validSamples, false));
+            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, false));
 
             // Generate the room recursively
             GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
 
-            // TODO: Check if need to meld room
+            if (roomSamples.Count < _samplerSettings.MinSamplesPerRoom && TryMeldSamplesToExistingRoom(roomSamples, roomIndex))
+                Debug.Log("Meld Success");
+            else
+                _rooms.Add(roomIndex, new Room());
 
-            // Create room
-            _rooms.Add(roomIndex, new Room());
         }
     }
 
     private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
     {
         // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
-        Vector2Int currentSample = SamplerHelperFunctions.GetRandomSample(cardinalSamples, true);
+        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, true);
         validSamples.Remove(currentSample);
 
         // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
@@ -160,6 +161,45 @@ public class Interior : MonoBehaviour
         // collect the cardinal samples for currentSample
         SamplerHelperFunctions.GetCardinalSample(validSamples, cardinalSamples, currentSample);
     }
+
+    /// <summary>
+    /// Try to meld the provided roomSamples to the closest neighbouring room
+    /// </summary>
+    /// <param name="roomSamples">list of samples to meld</param>
+    /// <param name="currentIndex">this is the roomIndex to ignore besides -1</param>
+    private bool TryMeldSamplesToExistingRoom(List<Vector2Int> roomSamples, int currentIndex)
+    {
+        List<int> roomCandidates = new List<int>();
+
+        void GetCardinalSampleValue(Vector2Int sample)
+        {
+            // make the sample is within _samples coverage
+            if (sample.x < 0 || sample.y < 0 || sample.x >= sizeX || sample.y >= sizeY) return;
+
+            int index = _samples[sample.x, sample.y];
+
+            if(index != currentIndex && index > -1 && !roomCandidates.Contains(index))
+                roomCandidates.Add(index);
+        };
+
+        foreach (Vector2Int sample in roomSamples)
+        {
+            GetCardinalSampleValue(sample + new Vector2Int(1, 0));
+            GetCardinalSampleValue(sample + new Vector2Int(-1, 0));
+            GetCardinalSampleValue(sample + new Vector2Int(0, 1));
+            GetCardinalSampleValue(sample + new Vector2Int(0, -1));
+        }
+
+        if (roomCandidates.Count == 0) return false;
+
+        int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates);
+
+        foreach (Vector2Int sample in roomSamples)
+            _samples[sample.x, sample.y] = newIndex;
+
+        return true;
+    }
+    
 
     public Vector3 SamplePointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV =false)
     {
@@ -209,7 +249,7 @@ public class Interior : MonoBehaviour
                 if (_samples[u, v] == -1) continue;
                 Gizmos.color = _rooms[_samples[u, v]].debugColor;
                 Vector3 worldPoint = SamplePointToWorldPoint(u, v);
-                Gizmos.DrawWireCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.3f, 0.0f, _samplerSettings.SampleDimension.x - 0.3f));
+                Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.3f, 0.0f, _samplerSettings.SampleDimension.x - 0.3f));
             }
         }
     }

@@ -28,7 +28,7 @@ public static class SamplerHelperFunctions
 
 
     // Use UnityEngine.Random to get a random element on the provided list and optionally remove from list
-    public static T GetRandomSample<T>(List<T> list, bool bRemoveFromList = false)
+    public static T GetRandomElement<T>(List<T> list, bool bRemoveFromList = false)
     {
         //TODO: Figure out for when list is empty
 
@@ -42,17 +42,17 @@ public static class SamplerHelperFunctions
 
     public static void GetCardinalSample(List<Vector2Int> validSamples, List<Vector2Int> cardinalSamples, Vector2Int sample)
     {
-        void TestCardinalSample(List<Vector2Int> validSamples, List<Vector2Int> cardinalSamples, Vector2Int sample)
+        void TestCardinalSample(Vector2Int cardinalSample)
         {
             // test if cardinal sample still exist in validSamples
-            if(validSamples.Contains(sample) && !cardinalSamples.Contains(sample))
-                cardinalSamples.Add(sample);
+            if(validSamples.Contains(cardinalSample) && !cardinalSamples.Contains(cardinalSample))
+                cardinalSamples.Add(cardinalSample);
 
         };
 
-        TestCardinalSample(validSamples, cardinalSamples, sample + new Vector2Int(1, 0));
-        TestCardinalSample(validSamples, cardinalSamples, sample + new Vector2Int(-1, 0));
-        TestCardinalSample(validSamples, cardinalSamples, sample + new Vector2Int(0, 1));
-        TestCardinalSample(validSamples, cardinalSamples, sample + new Vector2Int(0, -1));
+        TestCardinalSample(sample + new Vector2Int(1, 0));
+        TestCardinalSample(sample + new Vector2Int(-1, 0));
+        TestCardinalSample(sample + new Vector2Int(0, 1));
+        TestCardinalSample(sample + new Vector2Int(0, -1));
     }
 }
