@@ -249,7 +249,7 @@ public class Interior : MonoBehaviour
                 if (_samples[u, v] == -1) continue;
                 Gizmos.color = _rooms[_samples[u, v]].debugColor;
                 Vector3 worldPoint = SamplePointToWorldPoint(u, v);
-                Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.3f, 0.0f, _samplerSettings.SampleDimension.x - 0.3f));
+                Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
             }
         }
     }

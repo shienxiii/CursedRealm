@@ -8,7 +8,10 @@ public class Room
 {
     // samples occupied by this room
     private List<Vector2Int> _samples;
+    private List<Room> _rooms;
     public List<Vector2Int> Samples => _samples;
+    public List<Room> Rooms => _rooms;
+
 
     public Color debugColor;
 
