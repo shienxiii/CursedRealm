@@ -16,3 +16,4 @@ MonoBehaviour:
   _minRoomCount: 7
   _maxRoomCount: 15
   _offset: 3
+  _minSamplesPerRoom: 6
