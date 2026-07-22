@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.Splines;
 
@@ -97,7 +98,6 @@ public class Interior : MonoBehaviour
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
         Dictionary<int, List<Vector2Int>> roomCache = new Dictionary<int, List<Vector2Int>>();
-        roomCache.Clear();
 
         while (validSamples.Count > 0)
         {
@@ -117,13 +117,17 @@ public class Interior : MonoBehaviour
             if (roomSamples.Count < _samplerSettings.MinSamplesPerRoom)
             {
                 int result = TryMeldSamplesToExistingRoom(roomSamples, roomCache, roomIndex);
-                Debug.Log($"Meld attempt {roomIndex} returned {result}");
+                if(result >= 0)
+                {
+                    Debug.Log($"Meld attempt {roomIndex} returned {result}");
+                    continue;
+                }
+
+                Debug.LogWarning($"Meld attempt {roomIndex} failed: returned {result}");
             }
-            else
-            {
-                Debug.Log($"Add new room {roomIndex}");
-                roomCache.Add(roomIndex, roomSamples);
-            }
+
+            Debug.Log($"Add new room {roomIndex} sized {roomSamples.Count}");
+            roomCache.Add(roomIndex, roomSamples);
 
         }
 
@@ -212,6 +216,8 @@ public class Interior : MonoBehaviour
             _samples[sample.x, sample.y] = newIndex;
             inRoomCache[newIndex].Add(sample);
         }
+
+        Debug.Log($"new index {newIndex}, size updated to {inRoomCache[newIndex].Count}");
 
         return newIndex;
     }
