@@ -99,9 +99,16 @@ public class Interior : MonoBehaviour
 
         Dictionary<int, List<Vector2Int>> roomCache = new Dictionary<int, List<Vector2Int>>();
 
+        int targetSize = 0;
+
         while (validSamples.Count > 0)
         {
-            int targetSize = roomCount - _rooms.Count > 0 ? (validSamples.Count/ roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset) : validSamples.Count;
+            if (roomCount - _rooms.Count <= 0 || validSamples.Count < _samplerSettings.MinSamplesPerRoom)
+                targetSize = validSamples.Count;
+            else
+                targetSize = Math.Clamp((validSamples.Count / roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset),
+                            _samplerSettings.MinSamplesPerRoom,
+                            validSamples.Count);
 
             List<Vector2Int> roomSamples = new List<Vector2Int>();
             List<Vector2Int> cardinalSamples = new List<Vector2Int>();
