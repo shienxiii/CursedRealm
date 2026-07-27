@@ -4,16 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-/// <summary>
-/// Represents a collection of sample point in a Room.
-/// Used to reduce memory consumption of sample information and reduce number of floor mesh to spawn.
-/// </summary>
-public struct Space
-{
-    public Vector2Int StartPoint;
-    public Vector2Int Size;
-}
-
 public class Room
 {
     // samples occupied by this room
@@ -27,7 +17,7 @@ public class Room
     public Color debugColor_a;
 
     public bool[,] roomArea;
-    public Vector2Int start;
+    public Vector2Int start, end;
     public Vector2Int size;
 
     public Room()
@@ -52,29 +42,28 @@ public class Room
         if (_samples.Count == 0) return;
 
         // Generate Space data
-        Vector2Int x0y0 = _samples[0], x1y1 = _samples[0];
+        start = _samples[0];
+        end = _samples[0];
 
         for (int i = 1; i < _samples.Count; i++)
         {
             Vector2Int p = _samples[i];
 
-            x0y0.x = p.x < x0y0.x ? p.x : x0y0.x;
-            x0y0.y = p.y < x0y0.y ? p.y : x0y0.y;
+            start.x = p.x < start.x ? p.x : start.x;
+            start.y = p.y < start.y ? p.y : start.y;
 
-            x1y1.x = p.x > x1y1.x ? p.x : x1y1.x;
-            x1y1.y = p.y > x1y1.y ? p.y : x1y1.y;
+            end.x = p.x > end.x ? p.x : end.x;
+            end.y = p.y > end.y ? p.y : end.y;
         }
 
-        size = new Vector2Int(x1y1.x - x0y0.x + 1, x1y1.y - x0y0.y + 1);
+        size = new Vector2Int(end.x - start.x + 1, end.y - start.y + 1);
 
         roomArea = new bool[size.x, size.y];
 
         foreach (Vector2Int p in samples)
         {
-            roomArea[p.x - x0y0.x, p.y - x0y0.y] = true;
+            roomArea[p.x - start.x, p.y - start.y] = true;
         }
-
-        start = x0y0;
     }
 
     public void AppendSamples(List<Vector2Int> inSamples)

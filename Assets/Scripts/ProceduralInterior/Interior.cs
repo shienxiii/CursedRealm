@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Splines;
 
 [RequireComponent(typeof(SplineContainer))]
@@ -21,16 +22,21 @@ public class Interior : MonoBehaviour
     [SerializeField] private bool _drawDebug = false;
     [SerializeField] private int _splineToDebug = 0;
 
+    public bool applySeed = false;
+    public int seedValue = 5000;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        UnityEngine.Random.InitState(5000);
     }
 
     [ContextMenu("Initialize Area")]
     public void InitializeArea()
     {
+        if(applySeed)
+            UnityEngine.Random.InitState(seedValue);
+
         InitializeArea(_splineToDebug);
     }
 
@@ -252,6 +258,63 @@ public class Interior : MonoBehaviour
         return worldPoint;
     }
 
+    private void CalculateWalls()
+    {
+        if (_samples.Length == 0) return;
+
+        void TestForWall()
+        {
+
+        }
+    }
+    /*void AInterior::CalculateWalls()
+    {
+        if (Samples.Points.empty())
+            return;
+
+        auto TestForWall = [&](const FVector&WallStart, const FVector&WallEnd, FIntVector2 P0, FIntVector2 P1)
+	{
+            const bool bInside = P1.X >= 0 && P1.Y >= 0 && P1.X < Samples.X && P1.Y < Samples.Y;
+
+            int32 CurrentValue = Samples.Points[P0.X][P0.Y];
+            int32 NeighborValue = bInside ? Samples.Points[P1.X][P1.Y] : INDEX_NONE;
+
+            FIntVector2 CurrentCell = FIntVector2(P0.X, P0.Y);
+            FIntVector2 NeighborCell = bInside ? FIntVector2(P1.X, P1.Y) : FIntVector2(INDEX_NONE, INDEX_NONE);
+
+            if (!bInside || NeighborValue != CurrentValue)
+            {
+                FWall NewWall = FWall(WallStart, WallEnd,
+                                    CurrentValue, NeighborValue,
+                                    CurrentCell, NeighborCell);
+
+                if (Walls.Contains(NewWall) && NeighborValue != INDEX_NONE) return;
+
+                int WallIndex = Walls.AddUnique(NewWall);
+
+                AddRoomConnection(CurrentValue, NeighborValue, WallIndex);
+            }
+        }
+        ;
+
+        for (auto Room : Rooms)
+        {
+            for (FIntVector2 Sample : Room.Value.Samples)
+            {
+                // Convert corners to world-space
+                FVector TL = GetWorldPointForSample(FIntVector2(Sample.X, Sample.Y), false);
+                FVector TR = GetWorldPointForSample(FIntVector2(Sample.X, Sample.Y + 1), false);
+                FVector BL = GetWorldPointForSample(FIntVector2(Sample.X + 1, Sample.Y), false);
+                FVector BR = GetWorldPointForSample(FIntVector2(Sample.X + 1, Sample.Y + 1), false);
+
+                TestForWall(BL, BR, Sample, FIntVector2(Sample.X + 1, Sample.Y));
+                TestForWall(TL, TR, Sample, FIntVector2(Sample.X - 1, Sample.Y));
+                TestForWall(TR, BR, Sample, FIntVector2(Sample.X, Sample.Y + 1));
+                TestForWall(TL, BL, Sample, FIntVector2(Sample.X, Sample.Y - 1));
+            }
+        }
+    }*/
+
     private void OnDrawGizmos()
     {
         if (_areas == null)
@@ -278,6 +341,9 @@ public class Interior : MonoBehaviour
                 Gizmos.color = _rooms[_samples[u, v]].debugColor;
                 Vector3 worldPoint = SamplePointToWorldPoint(u, v);
                 Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
+
+                Vector3 testPoint = SamplePointToWorldPoint(u, v, false);
+                Gizmos.DrawCube(testPoint, new Vector3(0.3f, 0.3f, 0.3f));
             }
         }
 
