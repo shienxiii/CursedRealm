@@ -25,6 +25,9 @@ public class Interior : MonoBehaviour
     public bool applySeed = false;
     public int seedValue = 5000;
 
+    private System.Random _interiorRandomness;
+    public System.Random InteriorRandomness => _interiorRandomness;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -36,6 +39,9 @@ public class Interior : MonoBehaviour
     {
         if(applySeed)
             UnityEngine.Random.InitState(seedValue);
+
+        if(applySeed)
+            _interiorRandomness = new System.Random(seedValue);
 
         InitializeArea(_splineToDebug);
     }
