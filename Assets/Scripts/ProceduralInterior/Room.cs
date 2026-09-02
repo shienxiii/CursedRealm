@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[Serializable]
 public class Room
 {
     // samples occupied by this room
@@ -14,7 +15,6 @@ public class Room
 
 
     public Color debugColor;
-    public Color debugColor_a;
 
     public bool[,] roomArea;
     public Vector2Int start, end;
@@ -24,8 +24,6 @@ public class Room
     {
         System.Random rand = new System.Random();
         debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
-        debugColor_a = debugColor;
-        debugColor_a.a = 0.5f;
         Debug.Log("Room default construct");
     }
 
@@ -35,8 +33,6 @@ public class Room
 
         System.Random rand = new System.Random();
         debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
-        debugColor_a = debugColor;
-        debugColor_a.a = 0.5f;
 
 
         if (_samples.Count == 0) return;

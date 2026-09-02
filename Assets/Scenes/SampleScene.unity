@@ -762,45 +762,8 @@ MonoBehaviour:
       m_Data: []
     m_ObjectData:
       m_Data: []
-  - m_EditModeType: 1
-    m_Knots:
-    - Position:
-        x: 2.31
-        y: 0
-        z: -0.5
-      TangentIn:
-        x: 0
-        y: 0
-        z: 0
-      TangentOut:
-        x: 0
-        y: 0
-        z: 0
-      Rotation:
-        value:
-          x: 0
-          y: 0
-          z: 0
-          w: 1
-    m_MetaData:
-    - Mode: 1
-      Tension: 0.5
-    m_Closed: 0
-    m_IntData:
-      m_Data: []
-    m_FloatData:
-      m_Data: []
-    m_Float4Data:
-      m_Data: []
-    m_ObjectData:
-      m_Data: []
   m_Knots:
-    m_KnotsLink:
-    - Knots:
-      - Spline: 1
-        Knot: 0
-      - Spline: 0
-        Knot: 7
+    m_KnotsLink: []
 --- !u!4 &2076175524
 Transform:
   m_ObjectHideFlags: 0
@@ -810,7 +773,7 @@ Transform:
   m_GameObject: {fileID: 2076175522}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -2.7}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -830,10 +793,87 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interior
   _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
-  _start: {x: -25.8, y: 0, z: -27.45}
-  _end: {x: 19.75, y: 0, z: 18.099998}
+  _rooms:
+    m_keys: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f0000001000000011000000
+    m_values:
+    - debugColor: {r: 0.8117647, g: 0.73333335, b: 0.23137255, a: 1}
+      start: {x: 1, y: 14}
+      end: {x: 7, y: 22}
+      size: {x: 7, y: 9}
+    - debugColor: {r: 0.9411765, g: 0.047058824, b: 0.011764706, a: 1}
+      start: {x: 13, y: 0}
+      end: {x: 22, y: 5}
+      size: {x: 10, y: 6}
+    - debugColor: {r: 0.09019608, g: 0.87058824, b: 0.8666667, a: 1}
+      start: {x: 18, y: 6}
+      end: {x: 22, y: 15}
+      size: {x: 5, y: 10}
+    - debugColor: {r: 0.6313726, g: 0.41568628, b: 0.81960785, a: 1}
+      start: {x: 10, y: 14}
+      end: {x: 16, y: 18}
+      size: {x: 7, y: 5}
+    - debugColor: {r: 0.34901962, g: 0.8901961, b: 0.13725491, a: 1}
+      start: {x: 13, y: 7}
+      end: {x: 17, y: 15}
+      size: {x: 5, y: 9}
+    - debugColor: {r: 0.16078432, g: 0.99215686, b: 0.40392157, a: 1}
+      start: {x: 6, y: 0}
+      end: {x: 10, y: 5}
+      size: {x: 5, y: 6}
+    - debugColor: {r: 0.41960785, g: 0.83137256, b: 0.52156866, a: 1}
+      start: {x: 8, y: 18}
+      end: {x: 18, y: 22}
+      size: {x: 11, y: 5}
+    - debugColor: {r: 0.22352941, g: 0.4392157, b: 0.7529412, a: 1}
+      start: {x: 0, y: 12}
+      end: {x: 7, y: 15}
+      size: {x: 8, y: 4}
+    - debugColor: {r: 0.59607846, g: 0.5568628, b: 0.6901961, a: 1}
+      start: {x: 8, y: 12}
+      end: {x: 12, y: 17}
+      size: {x: 5, y: 6}
+    - debugColor: {r: 0.69411767, g: 0.34901962, b: 0.76862746, a: 1}
+      start: {x: 8, y: 18}
+      end: {x: 10, y: 21}
+      size: {x: 3, y: 4}
+    - debugColor: {r: 0.6431373, g: 0.7921569, b: 0.4117647, a: 1}
+      start: {x: 11, y: 0}
+      end: {x: 13, y: 5}
+      size: {x: 3, y: 6}
+    - debugColor: {r: 0.32156864, g: 0.039215688, b: 0.73333335, a: 1}
+      start: {x: 14, y: 5}
+      end: {x: 17, y: 6}
+      size: {x: 4, y: 2}
+    - debugColor: {r: 0.8627451, g: 0.14901961, b: 0.4117647, a: 1}
+      start: {x: 20, y: 16}
+      end: {x: 22, y: 21}
+      size: {x: 3, y: 6}
+    - debugColor: {r: 0.49411765, g: 0.99215686, b: 0.3019608, a: 1}
+      start: {x: 19, y: 17}
+      end: {x: 21, y: 18}
+      size: {x: 3, y: 2}
+    - debugColor: {r: 0.07450981, g: 0.72156864, b: 0.84313726, a: 1}
+      start: {x: 19, y: 19}
+      end: {x: 22, y: 22}
+      size: {x: 4, y: 4}
+    - debugColor: {r: 0.9411765, g: 0.043137256, b: 0.9647059, a: 1}
+      start: {x: 0, y: 16}
+      end: {x: 0, y: 22}
+      size: {x: 1, y: 7}
+    - debugColor: {r: 0.27450982, g: 0.9490196, b: 0.4392157, a: 1}
+      start: {x: 17, y: 16}
+      end: {x: 20, y: 17}
+      size: {x: 4, y: 2}
+    - debugColor: {r: 0.10980392, g: 0.18039216, b: 0.6313726, a: 1}
+      start: {x: 11, y: 19}
+      end: {x: 12, y: 21}
+      size: {x: 2, y: 3}
+  _start: {x: -25.8, y: 0, z: -24.75}
+  _end: {x: 19.75, y: 0, z: 20.8}
   _drawDebug: 1
   _splineToDebug: 0
+  applySeed: 0
+  seedValue: 5000
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

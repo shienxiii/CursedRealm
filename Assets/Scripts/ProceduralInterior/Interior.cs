@@ -14,7 +14,8 @@ public class Interior : MonoBehaviour
     private int[,] _samples;
     private int _sizeX, _sizeY;
 
-    private Dictionary<int, Room> _rooms;
+    [SerializeField]
+    private SerializableDictionary<int, Room> _rooms;
 
     [SerializeField] private Vector3 _start, _end;
 
@@ -81,7 +82,11 @@ public class Interior : MonoBehaviour
 
         // Create the samples and determine the valid samples
         _samples = new int[_sizeX,_sizeY];
-        _rooms = new Dictionary<int, Room>();
+
+        if (_rooms == null)
+            _rooms = new SerializableDictionary<int, Room>();
+        else
+            _rooms.Clear();
 
         List<Vector2Int> validSamples = new List<Vector2Int>();
         for(int u = 0; u < _sizeX; u++)
@@ -109,6 +114,7 @@ public class Interior : MonoBehaviour
         int roomCount = UnityEngine.Random.Range(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
+        // Cache the room samples before creating the Room objects
         Dictionary<int, List<Vector2Int>> roomCache = new Dictionary<int, List<Vector2Int>>();
 
         int targetSize = 0;
@@ -122,8 +128,8 @@ public class Interior : MonoBehaviour
                             _samplerSettings.MinSamplesPerRoom,
                             validSamples.Count);
 
-            List<Vector2Int> roomSamples = new List<Vector2Int>();
-            List<Vector2Int> cardinalSamples = new List<Vector2Int>();
+            List<Vector2Int> roomSamples = new List<Vector2Int>(); // samples to be cached as a room
+            List<Vector2Int> cardinalSamples = new List<Vector2Int>(); // samples directly next to the samples in roomSamples that are currently -1
 
             int roomIndex = roomCache.Count;
 
@@ -339,39 +345,24 @@ public class Interior : MonoBehaviour
             Gizmos.DrawWireSphere(_areas.transform.TransformPoint(area[i].Position), 0.05f);
         }
 
-        for (int u = 0; u < _sizeX; u++)
-        {
-            for (int v = 0; v < _sizeY; v++)
-            {
-                if (_samples[u, v] == -1) continue;
-                Gizmos.color = _rooms[_samples[u, v]].debugColor;
-                Vector3 worldPoint = SamplePointToWorldPoint(u, v);
-                Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
-
-                Vector3 testPoint = SamplePointToWorldPoint(u, v, false);
-                Gizmos.DrawCube(testPoint, new Vector3(0.3f, 0.3f, 0.3f));
-            }
-        }
-
+        // we want to display the debug of the room itself not the sample grid
         foreach (Room room in _rooms.Values)
         {
+            Vector2Int start = room.start;
+
             for (int u = 0; u < room.size.x; u++)
             {
                 for (int v = 0; v < room.size.y; v++)
                 {
-                    Vector3 worldPoint = SamplePointToWorldPoint(room.start.x + u, room.start.y + v);
+                    Vector2Int gridPoint = new Vector2Int(start.x + u, start.y + v);
+                    Vector3 worldPoint = SamplePointToWorldPoint(gridPoint.x, gridPoint.y);
                     if (room.roomArea[u, v])
                     {
-                        Color negative = Color.white - room.debugColor;
-                        negative.a = 1;
-                        Gizmos.color = negative;
-                        Gizmos.DrawSphere(worldPoint, _samplerSettings.SampleDimension.x / 4.0f);
-                    }
-                    else if (_samples[u, v] >= 0)
-                    {
-                        worldPoint.y += 1;
-                        Gizmos.color = _rooms[_samples[u, v]].debugColor;
-                        Gizmos.DrawSphere(worldPoint, _samplerSettings.SampleDimension.x / 4.0f);
+                        Gizmos.color = _rooms[_samples[gridPoint.x, gridPoint.y]].debugColor;
+                        Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
+
+                        Vector3 testPoint = SamplePointToWorldPoint(gridPoint.x, gridPoint.y, false);
+                        Gizmos.DrawCube(testPoint, new Vector3(0.5f, 0.5f, 0.5f));
                     }
                 }
             }
