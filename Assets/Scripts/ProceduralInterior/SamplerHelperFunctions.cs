@@ -30,7 +30,7 @@ public static class SamplerHelperFunctions
     // Use UnityEngine.Random to get a random element on the provided list and optionally remove from list
     public static T GetRandomElement<T>(List<T> list, bool bRemoveFromList = false)
     {
-        //TODO: Figure out for when list is empty
+        //return default(T);
 
         T element = list[UnityEngine.Random.Range(0, list.Count)];
 

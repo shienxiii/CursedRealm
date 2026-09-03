@@ -270,14 +270,119 @@ public class Interior : MonoBehaviour
         return worldPoint;
     }
 
-    private void CalculateWalls()
+    public List<Wall> CalculateWalls()
     {
-        if (_samples.Length == 0) return;
+        List<Wall> walls = new List<Wall>();
 
-        void TestForWall()
+        if (_samples == null || _samplerSettings == null)
+            return walls;
+
+        int width = _samples.GetLength(0);
+        int height = _samples.GetLength(1);
+
+        float cellSize = _samplerSettings.SampleDimension.x;
+        float halfSize = cellSize * 0.5f;
+
+        for (int x = 0; x < width; x++)
         {
+            for (int z = 0; z < height; z++)
+            {
+                int roomA = _samples[x, z];
 
+                if (roomA < 0)
+                    continue;
+
+                Vector3 center = SamplePointToWorldPoint(x, z);
+
+                // -X
+                if (x == 0 || _samples[x - 1, z] != roomA)
+                {
+                    int roomB = x == 0 ? -1 : _samples[x - 1, z];
+
+                    // Only create a wall if the other side is exterior
+                    // or a different room.
+                    if (roomB == -1 || roomB != roomA)
+                    {
+                        walls.Add(new Wall(
+                            roomA,
+                            roomB,
+                            new Vector3(
+                                center.x - halfSize,
+                                center.y,
+                                center.z - halfSize),
+                            new Vector3(
+                                center.x - halfSize,
+                                center.y,
+                                center.z + halfSize)));
+                    }
+                }
+
+                // +X
+                if (x == width - 1 || _samples[x + 1, z] != roomA)
+                {
+                    int roomB = x == width - 1 ? -1 : _samples[x + 1, z];
+
+                    if (roomB == -1 || roomB != roomA)
+                    {
+                        walls.Add(new Wall(
+                            roomA,
+                            roomB,
+                            new Vector3(
+                                center.x + halfSize,
+                                center.y,
+                                center.z - halfSize),
+                            new Vector3(
+                                center.x + halfSize,
+                                center.y,
+                                center.z + halfSize)));
+                    }
+                }
+
+                // -Z
+                if (z == 0 || _samples[x, z - 1] != roomA)
+                {
+                    int roomB = z == 0 ? -1 : _samples[x, z - 1];
+
+                    if (roomB == -1 || roomB != roomA)
+                    {
+                        walls.Add(new Wall(
+                            roomA,
+                            roomB,
+                            new Vector3(
+                                center.x - halfSize,
+                                center.y,
+                                center.z - halfSize),
+                            new Vector3(
+                                center.x + halfSize,
+                                center.y,
+                                center.z - halfSize)));
+                    }
+                }
+
+                // +Z
+                if (z == height - 1 || _samples[x, z + 1] != roomA)
+                {
+                    int roomB = z == height - 1 ? -1 : _samples[x, z + 1];
+
+                    if (roomB == -1 || roomB != roomA)
+                    {
+                        walls.Add(new Wall(
+                            roomA,
+                            roomB,
+                            new Vector3(
+                                center.x - halfSize,
+                                center.y,
+                                center.z + halfSize),
+                            new Vector3(
+                                center.x + halfSize,
+                                center.y,
+                                center.z + halfSize)));
+                    }
+                }
+            }
         }
+
+        return walls;
     }
     /*void AInterior::CalculateWalls()
     {
@@ -366,6 +471,14 @@ public class Interior : MonoBehaviour
                     }
                 }
             }
+        }
+
+        List<Wall> walls = CalculateWalls();
+
+        foreach (Wall wall in walls)
+        {
+            Gizmos.color = wall.RoomB == -1 ? Color.yellow : Color.white;
+            Gizmos.DrawLine(wall.Start, wall.End);
         }
     }
 }
