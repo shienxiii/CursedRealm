@@ -18,8 +18,20 @@ public struct Wall
     {
         RoomA = inRoomA;
         RoomB = inRoomB;
-        Start = inStart;
-        End = inEnd;
+        
+        // we want Start to hold the lower X or if they're approximately the same, the lower z
+        if(inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
+            inStart.z < inEnd.z && !Mathf.Approximately(inStart.z, inEnd.z))
+        {
+            Start = inStart;
+            End = inEnd;
+        }
+        else
+        {
+            Start = inEnd;
+            End = inStart;
+        }    
+        
         HasDoor = false;
     }
 
@@ -38,16 +50,19 @@ public struct Wall
         return HashCode.Combine(Start, End);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
-        return String.Format($"Wall | {0}:{1} | {2}-{3}", RoomA, RoomB, Start, End);
+        return String.Format($"Wall | {RoomA}:{RoomB} | {Start}-{End}");
     }
 
     public static bool operator ==(Wall wallA, Wall wallB)
     {
         // check that the wall span are start and end are approximately the same location
-        return (CustomVectorMath.EqualWithTolerance(wallA.Start, wallB.Start) && CustomVectorMath.EqualWithTolerance(wallA.End, wallB.End)) ||
-            (CustomVectorMath.EqualWithTolerance(wallA.Start, wallB.End) && CustomVectorMath.EqualWithTolerance(wallA.End, wallB.Start));
+        /*return (CustomVectorMath.EqualWithTolerance(wallA.Start, wallB.Start) && CustomVectorMath.EqualWithTolerance(wallA.End, wallB.End)) ||
+            (CustomVectorMath.EqualWithTolerance(wallA.Start, wallB.End) && CustomVectorMath.EqualWithTolerance(wallA.End, wallB.Start));*/
+
+        return (wallA.Start == wallB.Start && wallA.End == wallB.End) ||
+            (wallA.Start == wallB.End && wallA.End == wallB.Start);
     }
 
     public static bool operator !=(Wall wallA, Wall wallB)

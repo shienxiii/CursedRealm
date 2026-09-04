@@ -24,7 +24,6 @@ public class Room
     {
         System.Random rand = new System.Random();
         debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
-        Debug.Log("Room default construct");
     }
 
     public Room(List<Vector2Int> samples)

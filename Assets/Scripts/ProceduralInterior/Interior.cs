@@ -16,6 +16,7 @@ public class Interior : MonoBehaviour
 
     [SerializeField]
     private SerializableDictionary<int, Room> _rooms;
+    private HashSet<Wall> walls = new HashSet<Wall>();
 
     [SerializeField] private Vector3 _start, _end;
 
@@ -105,6 +106,7 @@ public class Interior : MonoBehaviour
         }
 
         GenerateRooms(validSamples);
+        walls = CalculateWalls();
     }
 
     public void GenerateRooms(List<Vector2Int> validSamples)
@@ -143,15 +145,9 @@ public class Interior : MonoBehaviour
             {
                 int result = TryMeldSamplesToExistingRoom(roomSamples, roomCache, roomIndex);
                 if(result >= 0)
-                {
-                    Debug.Log($"Meld attempt {roomIndex} returned {result}");
                     continue;
-                }
-
-                Debug.LogWarning($"Meld attempt {roomIndex} failed: returned {result}");
             }
 
-            Debug.Log($"Add new room {roomIndex} sized {roomSamples.Count}");
             roomCache.Add(roomIndex, roomSamples);
 
         }
@@ -270,9 +266,9 @@ public class Interior : MonoBehaviour
         return worldPoint;
     }
 
-    public List<Wall> CalculateWalls()
+    public HashSet<Wall> CalculateWalls()
     {
-        List<Wall> walls = new List<Wall>();
+        walls = new HashSet<Wall>();
 
         if (_samples == null || _samplerSettings == null)
             return walls;
@@ -283,154 +279,49 @@ public class Interior : MonoBehaviour
         float cellSize = _samplerSettings.SampleDimension.x;
         float halfSize = cellSize * 0.5f;
 
-        for (int x = 0; x < width; x++)
+        void TestForWall(in Vector3 start, in Vector3 end, in int x0, in int z0, in int x1, in int z1, in int roomA)
         {
-            for (int z = 0; z < height; z++)
+            // test to see if next sample is within spline
+            bool isInside = x1 >= 0 && z1 >= 0 && x1 < width && z1 < height;
+
+            int roomB = isInside ? _samples[x1, z1] : -1;
+
+            if(roomA != roomB)
+                walls.Add(new Wall(roomA, roomB, start, end));
+
+            // add room connection here to build tree
+        }
+
+        // test from index [-1, -1] to remove the need to test for wall in left or rear direction
+        for (int x = -1; x < width; x++)
+        {
+            for (int z = -1; z < height; z++)
             {
-                int roomA = _samples[x, z];
+                int roomA = x > -1 && z > -1 ? _samples[x, z] : -1;
 
-                if (roomA < 0)
-                    continue;
+                /**
+                 * Grid Shape
+                 *  tl-------tr    
+                 *  |        |
+                 *  |        |
+                 *  |        |
+                 *  bl-------br
+                 */
 
-                Vector3 center = SamplePointToWorldPoint(x, z);
 
-                // -X
-                if (x == 0 || _samples[x - 1, z] != roomA)
-                {
-                    int roomB = x == 0 ? -1 : _samples[x - 1, z];
+                // Original: Algorithm checks tl-bl, tl-tr, bl-br, tr-br from x = 0, z = 0
+                // NEW: Algorithm check tl-tr, tr-br from x = -1, z = -1 and reduced calling TestForWall() by over 45%
+                Vector3 tl = SamplePointToWorldPoint(x, z + 1, false);
+                Vector3 br = SamplePointToWorldPoint(x + 1, z, false);
+                Vector3 tr = SamplePointToWorldPoint(x + 1, z + 1, false);
 
-                    // Only create a wall if the other side is exterior
-                    // or a different room.
-                    if (roomB == -1 || roomB != roomA)
-                    {
-                        walls.Add(new Wall(
-                            roomA,
-                            roomB,
-                            new Vector3(
-                                center.x - halfSize,
-                                center.y,
-                                center.z - halfSize),
-                            new Vector3(
-                                center.x - halfSize,
-                                center.y,
-                                center.z + halfSize)));
-                    }
-                }
-
-                // +X
-                if (x == width - 1 || _samples[x + 1, z] != roomA)
-                {
-                    int roomB = x == width - 1 ? -1 : _samples[x + 1, z];
-
-                    if (roomB == -1 || roomB != roomA)
-                    {
-                        walls.Add(new Wall(
-                            roomA,
-                            roomB,
-                            new Vector3(
-                                center.x + halfSize,
-                                center.y,
-                                center.z - halfSize),
-                            new Vector3(
-                                center.x + halfSize,
-                                center.y,
-                                center.z + halfSize)));
-                    }
-                }
-
-                // -Z
-                if (z == 0 || _samples[x, z - 1] != roomA)
-                {
-                    int roomB = z == 0 ? -1 : _samples[x, z - 1];
-
-                    if (roomB == -1 || roomB != roomA)
-                    {
-                        walls.Add(new Wall(
-                            roomA,
-                            roomB,
-                            new Vector3(
-                                center.x - halfSize,
-                                center.y,
-                                center.z - halfSize),
-                            new Vector3(
-                                center.x + halfSize,
-                                center.y,
-                                center.z - halfSize)));
-                    }
-                }
-
-                // +Z
-                if (z == height - 1 || _samples[x, z + 1] != roomA)
-                {
-                    int roomB = z == height - 1 ? -1 : _samples[x, z + 1];
-
-                    if (roomB == -1 || roomB != roomA)
-                    {
-                        walls.Add(new Wall(
-                            roomA,
-                            roomB,
-                            new Vector3(
-                                center.x - halfSize,
-                                center.y,
-                                center.z + halfSize),
-                            new Vector3(
-                                center.x + halfSize,
-                                center.y,
-                                center.z + halfSize)));
-                    }
-                }
+                TestForWall(br, tr, x, z, x + 1, z, roomA);
+                TestForWall(tl, tr, x, z, x, z + 1, roomA);
             }
         }
 
         return walls;
     }
-    /*void AInterior::CalculateWalls()
-    {
-        if (Samples.Points.empty())
-            return;
-
-        auto TestForWall = [&](const FVector&WallStart, const FVector&WallEnd, FIntVector2 P0, FIntVector2 P1)
-	{
-            const bool bInside = P1.X >= 0 && P1.Y >= 0 && P1.X < Samples.X && P1.Y < Samples.Y;
-
-            int32 CurrentValue = Samples.Points[P0.X][P0.Y];
-            int32 NeighborValue = bInside ? Samples.Points[P1.X][P1.Y] : INDEX_NONE;
-
-            FIntVector2 CurrentCell = FIntVector2(P0.X, P0.Y);
-            FIntVector2 NeighborCell = bInside ? FIntVector2(P1.X, P1.Y) : FIntVector2(INDEX_NONE, INDEX_NONE);
-
-            if (!bInside || NeighborValue != CurrentValue)
-            {
-                FWall NewWall = FWall(WallStart, WallEnd,
-                                    CurrentValue, NeighborValue,
-                                    CurrentCell, NeighborCell);
-
-                if (Walls.Contains(NewWall) && NeighborValue != INDEX_NONE) return;
-
-                int WallIndex = Walls.AddUnique(NewWall);
-
-                AddRoomConnection(CurrentValue, NeighborValue, WallIndex);
-            }
-        }
-        ;
-
-        for (auto Room : Rooms)
-        {
-            for (FIntVector2 Sample : Room.Value.Samples)
-            {
-                // Convert corners to world-space
-                FVector TL = GetWorldPointForSample(FIntVector2(Sample.X, Sample.Y), false);
-                FVector TR = GetWorldPointForSample(FIntVector2(Sample.X, Sample.Y + 1), false);
-                FVector BL = GetWorldPointForSample(FIntVector2(Sample.X + 1, Sample.Y), false);
-                FVector BR = GetWorldPointForSample(FIntVector2(Sample.X + 1, Sample.Y + 1), false);
-
-                TestForWall(BL, BR, Sample, FIntVector2(Sample.X + 1, Sample.Y));
-                TestForWall(TL, TR, Sample, FIntVector2(Sample.X - 1, Sample.Y));
-                TestForWall(TR, BR, Sample, FIntVector2(Sample.X, Sample.Y + 1));
-                TestForWall(TL, BL, Sample, FIntVector2(Sample.X, Sample.Y - 1));
-            }
-        }
-    }*/
 
     private void OnDrawGizmos()
     {
@@ -473,11 +364,9 @@ public class Interior : MonoBehaviour
             }
         }
 
-        List<Wall> walls = CalculateWalls();
-
         foreach (Wall wall in walls)
         {
-            Gizmos.color = wall.RoomB == -1 ? Color.yellow : Color.white;
+            Gizmos.color = wall.RoomA == -1 || wall.RoomB == -1 ? Color.yellow : Color.white;
             Gizmos.DrawLine(wall.Start, wall.End);
         }
     }
