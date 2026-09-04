@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -15,8 +16,8 @@ public class Interior : MonoBehaviour
     private int _sizeX, _sizeY;
 
     [SerializeField]
-    private SerializableDictionary<int, Room> _rooms;
-    private HashSet<Wall> walls = new HashSet<Wall>();
+    private List<Room> _rooms;
+    private List<Wall> _walls = new List<Wall>();
 
     [SerializeField] private Vector3 _start, _end;
 
@@ -85,7 +86,7 @@ public class Interior : MonoBehaviour
         _samples = new int[_sizeX,_sizeY];
 
         if (_rooms == null)
-            _rooms = new SerializableDictionary<int, Room>();
+            _rooms = new List<Room>();
         else
             _rooms.Clear();
 
@@ -106,7 +107,7 @@ public class Interior : MonoBehaviour
         }
 
         GenerateRooms(validSamples);
-        walls = CalculateWalls();
+        CalculateWalls();
     }
 
     public void GenerateRooms(List<Vector2Int> validSamples)
@@ -117,7 +118,7 @@ public class Interior : MonoBehaviour
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
         // Cache the room samples before creating the Room objects
-        Dictionary<int, List<Vector2Int>> roomCache = new Dictionary<int, List<Vector2Int>>();
+        List<List<Vector2Int>> roomCache = new List<List<Vector2Int>>();
 
         int targetSize = 0;
 
@@ -148,12 +149,12 @@ public class Interior : MonoBehaviour
                     continue;
             }
 
-            roomCache.Add(roomIndex, roomSamples);
+            roomCache.Add(roomSamples);
 
         }
 
         foreach(var room in roomCache)
-            _rooms.Add(room.Key, new Room(room.Value));
+            _rooms.Add(new Room(room));
     }
 
     private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
@@ -204,7 +205,7 @@ public class Interior : MonoBehaviour
     /// </summary>
     /// <param name="roomSamples">list of samples to meld</param>
     /// <param name="currentIndex">this is the roomIndex to ignore besides -1</param>
-    private int TryMeldSamplesToExistingRoom(List<Vector2Int> roomSamples, Dictionary<int, List<Vector2Int>> inRoomCache, int currentIndex)
+    private int TryMeldSamplesToExistingRoom(List<Vector2Int> roomSamples, List<List<Vector2Int>> inRoomCache, int currentIndex)
     {
         Debug.Log($"try meld {currentIndex}");
         List<int> roomCandidates = new List<int>();
@@ -266,12 +267,13 @@ public class Interior : MonoBehaviour
         return worldPoint;
     }
 
-    public HashSet<Wall> CalculateWalls()
+    private void CalculateWalls()
     {
-        walls = new HashSet<Wall>();
-
         if (_samples == null || _samplerSettings == null)
-            return walls;
+            return;
+
+        HashSet<Wall> walls = new HashSet<Wall>();
+        _walls.Clear();
 
         int width = _samples.GetLength(0);
         int height = _samples.GetLength(1);
@@ -286,8 +288,17 @@ public class Interior : MonoBehaviour
 
             int roomB = isInside ? _samples[x1, z1] : -1;
 
-            if(roomA != roomB)
-                walls.Add(new Wall(roomA, roomB, start, end));
+            if (roomA == roomB) return;
+
+            Wall newWall = new Wall(roomA, roomB, start, end);
+            if (walls.Add(newWall))
+            {
+                // since we're sure newWall is unique, immediately add to _walls
+                _walls.Add(newWall);
+
+                // get the wall's index and send it to the Rooms separated by it
+                int wallIndex = _walls.Count - 1;
+            }
 
             // add room connection here to build tree
         }
@@ -320,7 +331,7 @@ public class Interior : MonoBehaviour
             }
         }
 
-        return walls;
+        _walls = walls.ToList<Wall>();
     }
 
     private void OnDrawGizmos()
@@ -342,7 +353,7 @@ public class Interior : MonoBehaviour
         }
 
         // we want to display the debug of the room itself not the sample grid
-        foreach (Room room in _rooms.Values)
+        foreach (Room room in _rooms)
         {
             Vector2Int start = room.start;
 
@@ -364,7 +375,7 @@ public class Interior : MonoBehaviour
             }
         }
 
-        foreach (Wall wall in walls)
+        foreach (Wall wall in _walls)
         {
             Gizmos.color = wall.RoomA == -1 || wall.RoomB == -1 ? Color.yellow : Color.white;
             Gizmos.DrawLine(wall.Start, wall.End);
