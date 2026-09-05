@@ -1,7 +1,5 @@
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 [Serializable]
@@ -9,22 +7,18 @@ public class Room
 {
     // samples occupied by this room
     private List<Vector2Int> _samples;
-    private List<Room> _connectedRooms;
-    public List<Vector2Int> Samples => _samples;
-    public List<Room> ConnectedRooms => _connectedRooms;
+    private Vector2Int _start, _end; // starting and ending grid point of the rectangle making up this room
+    private Vector2Int _size;
 
+    // Key: Next room index | Value: Walls separating this room from the next room
+    private Dictionary<int, List<int>> _next = new Dictionary<int, List<int>>();
+    public Dictionary<int, List<int>> Next => _next;
+
+    public List<Vector2Int> Samples => _samples;
+    public Vector2Int Start => _start;
+    public Vector2Int End => _end;
 
     public Color debugColor;
-
-    public bool[,] roomArea;
-    public Vector2Int start, end;
-    public Vector2Int size;
-
-    public Room()
-    {
-        System.Random rand = new System.Random();
-        debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
-    }
 
     public Room(List<Vector2Int> samples)
     {
@@ -33,36 +27,35 @@ public class Room
         System.Random rand = new System.Random();
         debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
 
-
-        if (_samples.Count == 0) return;
+        if (_samples.Count == 0)
+        {
+            _start = _end = _size = Vector2Int.zero;
+            return;
+        }
 
         // Generate Space data
-        start = _samples[0];
-        end = _samples[0];
+        _start = _samples[0];
+        _end = _samples[0];
 
         for (int i = 1; i < _samples.Count; i++)
         {
             Vector2Int p = _samples[i];
 
-            start.x = p.x < start.x ? p.x : start.x;
-            start.y = p.y < start.y ? p.y : start.y;
+            _start.x = p.x < _start.x ? p.x : _start.x;
+            _start.y = p.y < _start.y ? p.y : _start.y;
 
-            end.x = p.x > end.x ? p.x : end.x;
-            end.y = p.y > end.y ? p.y : end.y;
+            _end.x = p.x > _end.x ? p.x : _end.x;
+            _end.y = p.y > _end.y ? p.y : _end.y;
         }
 
-        size = new Vector2Int(end.x - start.x + 1, end.y - start.y + 1);
-
-        roomArea = new bool[size.x, size.y];
-
-        foreach (Vector2Int p in samples)
-        {
-            roomArea[p.x - start.x, p.y - start.y] = true;
-        }
+        _size = new Vector2Int(_end.x - _start.x + 1, _end.y - _start.y + 1);
     }
 
-    public void AppendSamples(List<Vector2Int> inSamples)
+    public void AddConnectingRoom(int connectingRoom, int wallIndex)
     {
-        _samples.AddRange(inSamples);
+        if(!_next.ContainsKey(connectingRoom))
+            _next.Add(connectingRoom, new List<int> { wallIndex });
+        else
+            _next[connectingRoom].Add(wallIndex);
     }
 }

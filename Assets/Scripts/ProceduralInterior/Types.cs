@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [Serializable]
-public struct Wall
+public class Wall
 {
     public int RoomA;
     public int RoomB;
@@ -35,7 +37,7 @@ public struct Wall
         HasDoor = false;
     }
 
-    public readonly bool Equals(Wall inWall)
+    public bool Equals(Wall inWall)
     {
         return this == inWall;
     }
@@ -50,7 +52,7 @@ public struct Wall
         return HashCode.Combine(Start, End);
     }
 
-    public override readonly string ToString()
+    public override string ToString()
     {
         return String.Format($"Wall | {RoomA}:{RoomB} | {Start}-{End}");
     }
@@ -70,3 +72,4 @@ public struct Wall
         return !(wallA == wallB);
     }
 }
+
