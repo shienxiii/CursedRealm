@@ -254,10 +254,12 @@ public class Interior : MonoBehaviour
         float cellSize = _samplerSettings.SampleDimension.x;
         float halfSize = cellSize * 0.5f;
 
-        HashSet<Wall> walls = new HashSet<Wall>();
+        HashSet<Wall> wallHash = new HashSet<Wall>();
 
         // Test if there is a wall between 2 sample point and add the wall
-        void TestForWall(in Vector3 start, in Vector3 end, in int x0, in int z0, in int x1, in int z1, in int roomA)
+        void TestForWall(in Vector3 start, in Vector3 end, in int roomA,
+                            in int x0, in int z0,
+                            in int x1, in int z1)
         {
             // test to see if next sample is within spline
             bool isInside = x1 >= 0 && z1 >= 0 && x1 < width && z1 < height;
@@ -267,7 +269,7 @@ public class Interior : MonoBehaviour
             if (roomA == roomB) return;
 
             Wall newWall = new Wall(roomA, roomB, start, end);
-            if (!walls.Add(newWall)) return;
+            if (!wallHash.Add(newWall)) return;
 
             _walls.Add(newWall);
 
@@ -295,8 +297,6 @@ public class Interior : MonoBehaviour
                  *  |      |
                  *  bl-----br
                  */
-
-
                 // Original: Algorithm checks tl-bl, tl-tr, bl-br, tr-br from x = 0, z = 0
                 // NEW: Algorithm check tl-tr, tr-br from x = -1, z = -1 and reduced calling TestForWall() by over 45%
                 Vector3 tl = SamplePointToWorldPoint(x, z + 1, false);
