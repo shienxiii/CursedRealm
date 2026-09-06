@@ -2,11 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Room belonging to an Interior.
-/// Every items held in here are to be referenced back to the owning Interior as many
-/// information in here are held in the context of what's in the owning Interior.
-/// </summary>
 [Serializable]
 public class Room
 {
@@ -15,7 +10,7 @@ public class Room
     private Vector2Int _start, _end; // starting and ending grid point of the rectangle making up this room
     private Vector2Int _size;
 
-    // Key: Next room index | Value: Index of walls separating this room from the next room
+    // Key: Next room index | Value: Walls separating this room from the next room
     private Dictionary<int, List<int>> _next = new Dictionary<int, List<int>>();
     public Dictionary<int, List<int>> Next => _next;
 
