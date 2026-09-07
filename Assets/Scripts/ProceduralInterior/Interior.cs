@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.Splines;
 
@@ -41,11 +42,10 @@ public class Interior : MonoBehaviour
     [ContextMenu("Initialize Area")]
     public void InitializeArea()
     {
-        if(applySeed)
-            UnityEngine.Random.InitState(seedValue);
-
-        if(applySeed)
+        if (applySeed)
             _interiorRandomness = new System.Random(seedValue);
+        else
+            _interiorRandomness = new System.Random();
 
         InitializeArea(_splineToDebug);
     }
@@ -57,8 +57,11 @@ public class Interior : MonoBehaviour
 
         if (!_samplerSettings || _areas.Splines.Count == 0 || splineIndex >= _areas.Splines.Count) return;
 
-        // Calculate that area that covers the samples
+        // clear all room and wall information
+        _rooms.Clear();
+        _walls.Clear();
 
+        // Calculate that area that covers the samples
         Spline area = _areas.Splines[splineIndex];
         if (area.Count == 0) return;
 
@@ -86,9 +89,6 @@ public class Interior : MonoBehaviour
         // Create the samples and determine the valid samples
         _samples = new int[_sizeX,_sizeY];
 
-        // get rid of all room and wall information
-        _rooms.Clear();
-        _walls.Clear();
 
         List<Vector2Int> validSamples = new List<Vector2Int>();
         for(int u = 0; u < _sizeX; u++)
@@ -108,13 +108,14 @@ public class Interior : MonoBehaviour
 
         GenerateRooms(validSamples);
         CalculateWallsAndRoomConnections();
+        GenerateDoors();
     }
 
     public void GenerateRooms(List<Vector2Int> validSamples)
     {
         if (!_samplerSettings || (_samples?.Length ?? 0) == 0 || validSamples.Count == 0) return;
 
-        int roomCount = UnityEngine.Random.Range(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
+        int roomCount = _interiorRandomness.Next(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
         // Cache the room samples before creating the Room objects
@@ -127,7 +128,7 @@ public class Interior : MonoBehaviour
             if (roomCount - _rooms.Count <= 0 || validSamples.Count < _samplerSettings.MinSamplesPerRoom)
                 targetSize = validSamples.Count;
             else
-                targetSize = Math.Clamp((validSamples.Count / roomCount) + UnityEngine.Random.Range(-roomSizeOffset, roomSizeOffset),
+                targetSize = Math.Clamp((validSamples.Count / roomCount) + _interiorRandomness.Next(-roomSizeOffset, roomSizeOffset + 1),
                             _samplerSettings.MinSamplesPerRoom,
                             validSamples.Count);
 
@@ -137,7 +138,7 @@ public class Interior : MonoBehaviour
             int roomIndex = roomCache.Count;
 
             // get a starting point to generate the room and add to the cardinalSamples list
-            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, false));
+            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, _interiorRandomness, false));
 
             // Generate the room recursively
             GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
@@ -160,7 +161,7 @@ public class Interior : MonoBehaviour
     private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
     {
         // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
-        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, true);
+        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, _interiorRandomness, true);
         validSamples.Remove(currentSample);
 
         // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
@@ -230,7 +231,7 @@ public class Interior : MonoBehaviour
 
         if (roomCandidates.Count == 0) return -1;
 
-        int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates);
+        int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates, _interiorRandomness);
 
         foreach (Vector2Int sample in roomSamples)
         {
@@ -257,7 +258,7 @@ public class Interior : MonoBehaviour
         HashSet<Wall> walls = new HashSet<Wall>();
 
         // Test if there is a wall between 2 sample point and add the wall
-        void TestForWall(in Vector3 start, in Vector3 end, in int x0, in int z0, in int x1, in int z1, in int roomA)
+        void ParseWall(in Vector3 start, in Vector3 end, in int x0, in int z0, in int x1, in int z1, in int roomA)
         {
             // test to see if next sample is within spline
             bool isInside = x1 >= 0 && z1 >= 0 && x1 < width && z1 < height;
@@ -276,16 +277,16 @@ public class Interior : MonoBehaviour
             // if roomA and roomB are index to actual room, add room connection here
             if(roomA > -1 && roomB > -1)
             {
-                _rooms[roomA].AddConnectingRoom(roomB, wallIndex);
-                _rooms[roomB].AddConnectingRoom(roomA, wallIndex);
+                _rooms[roomA].AddDoorCandidateForRoom(roomB, wallIndex);
+                _rooms[roomB].AddDoorCandidateForRoom(roomA, wallIndex);
             }
 
         }
 
         // test from index [-1, -1] to remove the need to test for wall in left or rear direction
-        for (int x = -1; x < width; x++)
+        for (int x = 0; x < width; x++)
         {
-            for (int z = -1; z < height; z++)
+            for (int z = 0; z < height; z++)
             {
                 int roomA = x > -1 && z > -1 ? _samples[x, z] : -1;
 
@@ -295,26 +296,54 @@ public class Interior : MonoBehaviour
                  *  |      |
                  *  bl-----br
                  */
-
-
-                // Original: Algorithm checks tl-bl, tl-tr, bl-br, tr-br from x = 0, z = 0
-                // NEW: Algorithm check tl-tr, tr-br from x = -1, z = -1 and reduced calling TestForWall() by over 45%
                 Vector3 tl = SamplePointToWorldPoint(x, z + 1, false);
                 Vector3 br = SamplePointToWorldPoint(x + 1, z, false);
                 Vector3 tr = SamplePointToWorldPoint(x + 1, z + 1, false);
 
-                TestForWall(br, tr, x, z, x + 1, z, roomA);
-                TestForWall(tl, tr, x, z, x, z + 1, roomA);
+                ParseWall(br, tr, x, z, x + 1, z, roomA);
+                ParseWall(tl, tr, x, z, x, z + 1, roomA);
+
+                if(x == 0 || z == 0)
+                {
+                    Vector3 bl = SamplePointToWorldPoint(x, z, false);
+                    if(x == 0)
+                        ParseWall(bl, tl, x, z, x - 1, z, roomA);
+
+                    if(z == 0)
+                        ParseWall(bl, br, x, z, x, z - 1, roomA);
+                }
             }
         }
 
         for (int i = 0; i < _rooms.Count; i++)
         {
-            string message = string.Format($"Room {i} : Connected Rooms {_rooms[i].Next.Count} |");
-            foreach (KeyValuePair<int, List<int>> connection in _rooms[i].Next)
+            string message = string.Format($"Room {i} : Connected Rooms {_rooms[i].DoorCandidates.Count} |");
+            foreach (KeyValuePair<int, List<int>> connection in _rooms[i].DoorCandidates)
                 message = string.Format($"{message} [{connection.Key} : {connection.Value.Count} walls]");
 
             Debug.Log(message);
+        }
+    }
+
+    private void GenerateDoors()
+    {
+        for(int roomIndex = 0; roomIndex < _rooms.Count;roomIndex++)
+        {
+            Dictionary<int, List<int>> doorCandidates = _rooms[roomIndex].DoorCandidates;
+            List<int> nextRooms = _rooms[roomIndex].DoorCandidates.Keys.ToList();
+
+
+            foreach (int nextRoomIndex in nextRooms)
+            {
+                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextRoomIndex], _interiorRandomness);
+
+                // flag the selected wall for a door
+                _walls[wallIndex].Door = true;
+
+                // Remove both rooms from each others ConnectingWalls Dictionary
+                _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextRoomIndex);
+                _rooms[nextRoomIndex].RemoveDoorCandidatesForRoom(roomIndex);
+            }
         }
     }
 
@@ -375,9 +404,6 @@ public class Interior : MonoBehaviour
                     {
                         Gizmos.color = room.debugColor;
                         Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
-
-                        Vector3 testPoint = SamplePointToWorldPoint(u, v, false);
-                        Gizmos.DrawCube(testPoint, new Vector3(0.5f, 0.5f, 0.5f));
                     }
                 }
             }
@@ -387,6 +413,7 @@ public class Interior : MonoBehaviour
         foreach (Wall wall in _walls)
         {
             Gizmos.color = wall.RoomA == -1 || wall.RoomB == -1 ? Color.yellow : Color.white;
+            Gizmos.color = wall.Door ? Color.red : Color.white;
             Gizmos.DrawLine(wall.Start, wall.End);
         }
     }

@@ -13,7 +13,8 @@ public class Wall
     public Vector3 Start;
     public Vector3 End;
 
-    public bool HasDoor;
+    // Flag for if this wall is a door
+    public bool Door = false;
 
     public Wall(int inRoomA, int inRoomB,
                 Vector3 inStart, Vector3 inEnd)
@@ -34,7 +35,7 @@ public class Wall
             End = inStart;
         }    
         
-        HasDoor = false;
+        Door = false;
     }
 
     public bool Equals(Wall inWall)

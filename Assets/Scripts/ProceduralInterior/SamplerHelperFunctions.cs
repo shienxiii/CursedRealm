@@ -27,12 +27,12 @@ public static class SamplerHelperFunctions
     }
 
 
-    // Use UnityEngine.Random to get a random element on the provided list and optionally remove from list
-    public static T GetRandomElement<T>(List<T> list, bool bRemoveFromList = false)
+    // Use a provided System.Random to get a random element on the provided list and optionally remove from list
+    public static T GetRandomElement<T>(List<T> list, System.Random random, bool bRemoveFromList = false)
     {
         //return default(T);
 
-        T element = list[UnityEngine.Random.Range(0, list.Count)];
+        T element = list[random.Next(list.Count)];
 
         if (bRemoveFromList)
             list.Remove(element);
