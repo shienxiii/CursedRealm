@@ -28,10 +28,14 @@ public class Interior : MonoBehaviour
     [SerializeField] private int _splineToDebug = 0;
 
     public bool applySeed = false;
-    public int seedValue = 5000;
+    public int roomSeed = 5000;
+    public int doorSeed = 5000;
 
-    private System.Random _interiorRandomness;
-    public System.Random InteriorRandomness => _interiorRandomness;
+    private System.Random _roomRandom;
+    public System.Random RoomRandom => _roomRandom;
+
+    private System.Random _doorRandom;
+    public System.Random DoorRandom => _doorRandom;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -43,9 +47,15 @@ public class Interior : MonoBehaviour
     public void InitializeArea()
     {
         if (applySeed)
-            _interiorRandomness = new System.Random(seedValue);
+        {
+            _roomRandom = new System.Random(roomSeed);
+            _doorRandom = new System.Random(doorSeed);
+        }
         else
-            _interiorRandomness = new System.Random();
+        {
+            _roomRandom = new System.Random();
+            _doorRandom = new System.Random();
+        }
 
         InitializeArea(_splineToDebug);
     }
@@ -115,7 +125,7 @@ public class Interior : MonoBehaviour
     {
         if (!_samplerSettings || (_samples?.Length ?? 0) == 0 || validSamples.Count == 0) return;
 
-        int roomCount = _interiorRandomness.Next(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
+        int roomCount = _roomRandom.Next(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
         // Cache the room samples before creating the Room objects
@@ -128,7 +138,7 @@ public class Interior : MonoBehaviour
             if (roomCount - _rooms.Count <= 0 || validSamples.Count < _samplerSettings.MinSamplesPerRoom)
                 targetSize = validSamples.Count;
             else
-                targetSize = Math.Clamp((validSamples.Count / roomCount) + _interiorRandomness.Next(-roomSizeOffset, roomSizeOffset + 1),
+                targetSize = Math.Clamp((validSamples.Count / roomCount) + _roomRandom.Next(-roomSizeOffset, roomSizeOffset + 1),
                             _samplerSettings.MinSamplesPerRoom,
                             validSamples.Count);
 
@@ -138,7 +148,7 @@ public class Interior : MonoBehaviour
             int roomIndex = roomCache.Count;
 
             // get a starting point to generate the room and add to the cardinalSamples list
-            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, _interiorRandomness, false));
+            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, _roomRandom, false));
 
             // Generate the room recursively
             GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
@@ -161,7 +171,7 @@ public class Interior : MonoBehaviour
     private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
     {
         // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
-        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, _interiorRandomness, true);
+        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, _roomRandom, true);
         validSamples.Remove(currentSample);
 
         // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
@@ -231,7 +241,7 @@ public class Interior : MonoBehaviour
 
         if (roomCandidates.Count == 0) return -1;
 
-        int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates, _interiorRandomness);
+        int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates, _roomRandom);
 
         foreach (Vector2Int sample in roomSamples)
         {
@@ -329,20 +339,40 @@ public class Interior : MonoBehaviour
     {
         for(int roomIndex = 0; roomIndex < _rooms.Count;roomIndex++)
         {
-            Dictionary<int, List<int>> doorCandidates = _rooms[roomIndex].DoorCandidates;
-            List<int> nextRooms = _rooms[roomIndex].DoorCandidates.Keys.ToList();
+            Room current = _rooms[roomIndex];
+            Dictionary<int, List<int>> doorCandidates = current.DoorCandidates;
+            List<int> nextRooms = current.DoorCandidates.Keys.ToList();
 
-
-            foreach (int nextRoomIndex in nextRooms)
+            foreach (int nextIndex in nextRooms)
             {
-                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextRoomIndex], _interiorRandomness);
+                Room next = _rooms[nextIndex];
+                int currentPathCount = current.DoorCandidates.Count + current.Doors.Count;
+                int nextPathCount = next.DoorCandidates.Count + next.Doors.Count;
+
+                // Check if we want to establish path with this room or break the path
+                bool canBreakPath = currentPathCount > 1 && nextPathCount > 1;
+                bool keepPath = (_roomRandom.Next(100) % 4) > 2;
+
+                if(canBreakPath && !keepPath)
+                {
+                    // Remove both rooms from each others ConnectingWalls Dictionary
+                    _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextIndex);
+                    _rooms[nextIndex].RemoveDoorCandidatesForRoom(roomIndex);
+                    continue;
+                }
+
+                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], _doorRandom);
 
                 // flag the selected wall for a door
                 _walls[wallIndex].Door = true;
 
                 // Remove both rooms from each others ConnectingWalls Dictionary
-                _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextRoomIndex);
-                _rooms[nextRoomIndex].RemoveDoorCandidatesForRoom(roomIndex);
+                _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextIndex);
+                _rooms[nextIndex].RemoveDoorCandidatesForRoom(roomIndex);
+
+                // Add reference to door
+                _rooms[roomIndex].AddDoor(nextIndex, wallIndex);
+                _rooms[roomIndex].AddDoor(roomIndex, wallIndex);
             }
         }
     }

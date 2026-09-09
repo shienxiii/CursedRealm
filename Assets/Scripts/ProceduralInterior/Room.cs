@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// This class hold a single room in an Interior.
+/// The values in this class all refers to an index in the owning Interior
+/// </summary>
 [Serializable]
 public class Room
 {
-    // samples occupied by this room
+    // samples occupied by this room, values are index to Interior._samples in owning Interior
     private List<Vector2Int> _samples;
-    // walls making up this room
+    // walls making up this room, values are index to Interior._walls in owning Interior
     private List<int> _walls;
     private Vector2Int _start, _end; // starting and ending grid point of the rectangle making up this room
     private Vector2Int _size;
@@ -79,5 +83,13 @@ public class Room
     public void AddWall(int wallIndex)
     {
         _walls.Add(wallIndex);
+    }
+
+    public bool AddDoor(int nextRoomIndex, int wallIndex)
+    {
+        if (_doors.ContainsKey(nextRoomIndex)) return false;
+
+        _doors.Add(nextRoomIndex, wallIndex);
+        return true;
     }
 }
