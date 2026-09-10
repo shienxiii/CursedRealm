@@ -13,12 +13,15 @@ public class Room
     private List<Vector2Int> _samples;
     // walls making up this room, values are index to Interior._walls in owning Interior
     private List<int> _walls;
-    private Vector2Int _start, _end; // starting and ending grid point of the rectangle making up this room
+    // starting and ending grid point of the rectangle making up this room
+    private Vector2Int _start, _end;
     private Vector2Int _size;
 
+    /// <summary>
     // Doors to the another room
     // Key : Room index
     // Value : Wall index of the door
+    /// </summary>
     private Dictionary<int, int> _doors = new Dictionary<int, int>();
     public Dictionary<int, int> Doors => _doors;
 

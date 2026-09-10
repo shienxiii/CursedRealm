@@ -14,7 +14,7 @@ public class Interior : MonoBehaviour
     [SerializeField] private SamplerSettings _samplerSettings;
 
     private SplineContainer _areas;
-    private int[,] _samples;
+    private Sample[,] _samples;
     private int _sizeX, _sizeY;
 
     [SerializeField]
@@ -96,8 +96,8 @@ public class Interior : MonoBehaviour
         _sizeX = Mathf.CeilToInt((_end.x - _start.x) / _samplerSettings.SampleDimension.x);
         _sizeY = Mathf.CeilToInt((_end.z - _start.z) / _samplerSettings.SampleDimension.x);
 
-        // Create the samples and determine the valid samples
-        _samples = new int[_sizeX,_sizeY];
+        // Create the samples
+        _samples = new Sample[_sizeX,_sizeY];
 
 
         List<Vector2Int> validSamples = new List<Vector2Int>();
@@ -105,14 +105,14 @@ public class Interior : MonoBehaviour
         {
             for(int v = 0; v < _sizeY; v++)
             {
-                Vector3 worldPoint = SamplePointToWorldPoint(u,v);
+                Vector3 worldPoint = GridPointToWorldPoint(u,v);
 
-                // we want to invalidate every sample points first
-                _samples[u, v] = -1;
-
-                // and put valid samples points to a list to be parsed and converted to a valid point
+                // if grid point is vaild, create the Sample instance and add the grid point to validSamples
                 if (SamplerHelperFunctions.IsPointInsidePolygon(polygon, new Vector2(worldPoint.x, worldPoint.z)))
-                    validSamples.Add(new Vector2Int(u ,v));
+                {
+                    _samples[u, v] = new Sample(-1);
+                    validSamples.Add(new Vector2Int(u, v));
+                }
             }
         }
 
@@ -128,7 +128,7 @@ public class Interior : MonoBehaviour
         int roomCount = _roomRandom.Next(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
 
-        // Cache the room samples before creating the Room objects
+        // We want to cache the room samples before creating the Room objects
         List<List<Vector2Int>> roomCache = new List<List<Vector2Int>>();
 
         int targetSize = 0;
@@ -175,7 +175,7 @@ public class Interior : MonoBehaviour
         validSamples.Remove(currentSample);
 
         // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
-        _samples[currentSample.x, currentSample.y] = roomIndex;
+        _samples[currentSample.x, currentSample.y].RoomIndex = roomIndex;
         roomSamples.Add(currentSample);
 
         ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(1, 0), roomIndex);
@@ -199,7 +199,7 @@ public class Interior : MonoBehaviour
         if (!cardinalSamples.Contains(currentSample)) return;
 
         // we got a valid sample, include it in the room and remove from AvailableSamples and CardinalSamples
-        _samples[currentSample.x, currentSample.y] = roomIndex;
+        _samples[currentSample.x, currentSample.y].RoomIndex = roomIndex;
         roomSamples.Add(currentSample);
         validSamples.Remove(currentSample);
         cardinalSamples.Remove(currentSample);
@@ -223,9 +223,9 @@ public class Interior : MonoBehaviour
         void GetCardinalSampleValue(Vector2Int sample)
         {
             // make the sample is within _samples coverage
-            if (sample.x < 0 || sample.y < 0 || sample.x >= _sizeX || sample.y >= _sizeY) return;
+            if (sample.x < 0 || sample.y < 0 || sample.x >= _sizeX || sample.y >= _sizeY || _samples[sample.x, sample.y] == null) return;
 
-            int index = _samples[sample.x, sample.y];
+            int index = _samples[sample.x, sample.y].RoomIndex;
 
             if(index != currentIndex && index > -1 && !roomCandidates.Contains(index))
                 roomCandidates.Add(index);
@@ -245,7 +245,7 @@ public class Interior : MonoBehaviour
 
         foreach (Vector2Int sample in roomSamples)
         {
-            _samples[sample.x, sample.y] = newIndex;
+            _samples[sample.x, sample.y].RoomIndex = newIndex;
             inRoomCache[newIndex].Add(sample);
         }
 
@@ -271,13 +271,13 @@ public class Interior : MonoBehaviour
         void ParseWall(in Vector3 start, in Vector3 end, in int x0, in int z0, in int x1, in int z1, in int roomA)
         {
             // test to see if next sample is within spline
-            bool isInside = x1 >= 0 && z1 >= 0 && x1 < width && z1 < height;
+            bool isInside = x1 >= 0 && z1 >= 0 && x1 < width && z1 < height && _samples[x1, z1] != null;
 
-            int roomB = isInside ? _samples[x1, z1] : -1;
+            int roomB = isInside ? _samples[x1, z1].RoomIndex : -1;
 
             if (roomA == roomB) return;
 
-            Wall newWall = new Wall(roomA, roomB, start, end);
+            Wall newWall = new Wall(roomA, roomB, new Vector2Int(x0, z0), new Vector2Int(x1, z1), start, end);
             if (!walls.Add(newWall)) return;
 
             _walls.Add(newWall);
@@ -298,7 +298,7 @@ public class Interior : MonoBehaviour
         {
             for (int z = 0; z < height; z++)
             {
-                int roomA = x > -1 && z > -1 ? _samples[x, z] : -1;
+                int roomA = x > -1 && z > -1 && _samples[x, z] != null ? _samples[x, z].RoomIndex : -1;
 
                 /** Grid Shape
                  *  tl-----tr    
@@ -306,16 +306,16 @@ public class Interior : MonoBehaviour
                  *  |      |
                  *  bl-----br
                  */
-                Vector3 tl = SamplePointToWorldPoint(x, z + 1, false);
-                Vector3 br = SamplePointToWorldPoint(x + 1, z, false);
-                Vector3 tr = SamplePointToWorldPoint(x + 1, z + 1, false);
+                Vector3 tl = GridPointToWorldPoint(x, z + 1, false);
+                Vector3 br = GridPointToWorldPoint(x + 1, z, false);
+                Vector3 tr = GridPointToWorldPoint(x + 1, z + 1, false);
 
                 ParseWall(br, tr, x, z, x + 1, z, roomA);
                 ParseWall(tl, tr, x, z, x, z + 1, roomA);
 
                 if(x == 0 || z == 0)
                 {
-                    Vector3 bl = SamplePointToWorldPoint(x, z, false);
+                    Vector3 bl = GridPointToWorldPoint(x, z, false);
                     if(x == 0)
                         ParseWall(bl, tl, x, z, x - 1, z, roomA);
 
@@ -364,7 +364,12 @@ public class Interior : MonoBehaviour
                 int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], _doorRandom);
 
                 // flag the selected wall for a door
-                _walls[wallIndex].Door = true;
+                Wall newDoor = _walls[wallIndex];
+                newDoor.Door = true;
+
+                // flag the samples on both sides of the door
+                _samples[newDoor.SampleA.x, newDoor.SampleA.y].State = SampleState.RESERVED;
+                _samples[newDoor.SampleB.x, newDoor.SampleB.y].State = SampleState.RESERVED;
 
                 // Remove both rooms from each others ConnectingWalls Dictionary
                 _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextIndex);
@@ -377,7 +382,7 @@ public class Interior : MonoBehaviour
         }
     }
 
-    public Vector3 SamplePointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
+    public Vector3 GridPointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
     {
         if (!_samplerSettings) return Vector3.zero;
 
@@ -429,10 +434,10 @@ public class Interior : MonoBehaviour
             {
                 for (int v = room.Start.y; v <= room.End.y; v++)
                 {
-                    Vector3 worldPoint = SamplePointToWorldPoint(u, v);
-                    if (_samples[u, v] == i)
+                    Vector3 worldPoint = GridPointToWorldPoint(u, v);
+                    if (_samples != null && _samples[u, v]?.RoomIndex == i)
                     {
-                        Gizmos.color = room.debugColor;
+                        Gizmos.color = _samples[u, v].State == SampleState.RESERVED ? Color.aquamarine : room.debugColor;
                         Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
                     }
                 }
@@ -442,9 +447,22 @@ public class Interior : MonoBehaviour
 
         foreach (Wall wall in _walls)
         {
-            Gizmos.color = wall.RoomA == -1 || wall.RoomB == -1 ? Color.yellow : Color.white;
-            Gizmos.color = wall.Door ? Color.red : Color.white;
-            Gizmos.DrawLine(wall.Start, wall.End);
+            Color c = wall.RoomA == -1 || wall.RoomB == -1 ? Color.yellow : Color.white;
+            c = wall.Door ? Color.red : c;
+            c.a = 1;
+            Gizmos.color = c;
+
+            float x = Mathf.Abs(wall.Start.x - wall.End.x) - 0.075f;
+            float y = 2.0f;
+            float z = Mathf.Abs(wall.Start.z - wall.End.z) - 0.075f;
+
+            Vector3 center = wall.Start + wall.End;
+            center.x /= 2;
+            center.y += 1.0f;
+            center.z /= 2;
+
+            Gizmos.DrawCube(center, new Vector3(x, y, z));
+            //Gizmos.DrawLine(wall.Start, wall.End);
         }
     }
 }

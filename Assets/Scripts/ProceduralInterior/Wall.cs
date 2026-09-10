@@ -8,6 +8,8 @@ public class Wall
 {
     public int RoomA;
     public int RoomB;
+    public Vector2Int SampleA; // Sample point of RoomA
+    public Vector2Int SampleB; // Sample point of RoomB
 
     // We want to know the wall span
     public Vector3 Start;
@@ -17,10 +19,13 @@ public class Wall
     public bool Door = false;
 
     public Wall(int inRoomA, int inRoomB,
+                Vector2Int inSampleA, Vector2Int inSampleB,
                 Vector3 inStart, Vector3 inEnd)
     {
         RoomA = inRoomA;
         RoomB = inRoomB;
+        SampleA = inSampleA;
+        SampleB = inSampleB;
         
         // we want Start to hold the lower X or if they're approximately the same, the lower z
         if(inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
