@@ -4,6 +4,10 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
+/// <summary>
+/// This class hold information of a wall segment of an Interior.
+/// The values in this class all in the context of the owning Interior
+/// </summary>
 [Serializable]
 public class Wall
 {
@@ -45,7 +49,7 @@ public class Wall
         else
         {
             _start = inEnd;
-            _start = inStart;
+            _end = inStart;
         }
 
 

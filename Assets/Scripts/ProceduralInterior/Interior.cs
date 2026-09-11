@@ -11,11 +11,15 @@ using UnityEngine.Splines;
 [RequireComponent(typeof(SplineContainer))]
 public class Interior : MonoBehaviour
 {
+    // Components
+    private SplineContainer _areas;
+
     [SerializeField] private SamplerSettings _samplerSettings;
 
-    private SplineContainer _areas;
     private Sample[,] _samples;
     private int _sizeX, _sizeY;
+
+
 
     [SerializeField]
     private List<Room> _rooms = new List<Room>();
@@ -29,14 +33,17 @@ public class Interior : MonoBehaviour
 
     public bool applySeed = false;
     public int roomSeed = 5000;
-    public int doorSeed = 5000;
+    private System.Random _interiorRandom;
 
-    private System.Random _roomRandom;
-    public System.Random RoomRandom => _roomRandom;
+    /*** PUBLIC PROPERTIES ***/
+    public SamplerSettings Settings => _samplerSettings;
+    public Sample[,] Samples => _samples;
+    public int SizeX => _sizeX;
+    public int SizeY => _sizeY;
+    public List<Room> Rooms => _rooms;
+    public List<Wall> Walls => _walls;
 
-    private System.Random _doorRandom;
-    public System.Random DoorRandom => _doorRandom;
-
+    public System.Random InteriorRandom => _interiorRandom;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -47,15 +54,9 @@ public class Interior : MonoBehaviour
     public void InitializeArea()
     {
         if (applySeed)
-        {
-            _roomRandom = new System.Random(roomSeed);
-            _doorRandom = new System.Random(doorSeed);
-        }
+            _interiorRandom = new System.Random(roomSeed);
         else
-        {
-            _roomRandom = new System.Random();
-            _doorRandom = new System.Random();
-        }
+            _interiorRandom = new System.Random();
 
         InitializeArea(_splineToDebug);
     }
@@ -71,7 +72,7 @@ public class Interior : MonoBehaviour
         _rooms.Clear();
         _walls.Clear();
 
-        // Calculate that area that covers the samples
+        // Calculate the area that covers the samples
         Spline area = _areas.Splines[splineIndex];
         if (area.Count == 0) return;
 
@@ -116,140 +117,9 @@ public class Interior : MonoBehaviour
             }
         }
 
-        GenerateRooms(validSamples);
+        RoomGenerator.GenerateRooms(this, validSamples);
         CalculateWallsAndRoomConnections();
         GenerateDoors();
-    }
-
-    public void GenerateRooms(List<Vector2Int> validSamples)
-    {
-        if (!_samplerSettings || (_samples?.Length ?? 0) == 0 || validSamples.Count == 0) return;
-
-        int roomCount = _roomRandom.Next(_samplerSettings.MinRoomCount, _samplerSettings.MaxRoomCount + 1);
-        int roomSizeOffset = Mathf.Abs(_samplerSettings.Offset);
-
-        // We want to cache the room samples before creating the Room objects
-        List<List<Vector2Int>> roomCache = new List<List<Vector2Int>>();
-
-        int targetSize = 0;
-
-        while (validSamples.Count > 0)
-        {
-            if (roomCount - _rooms.Count <= 0 || validSamples.Count < _samplerSettings.MinSamplesPerRoom)
-                targetSize = validSamples.Count;
-            else
-                targetSize = Math.Clamp((validSamples.Count / roomCount) + _roomRandom.Next(-roomSizeOffset, roomSizeOffset + 1),
-                            _samplerSettings.MinSamplesPerRoom,
-                            validSamples.Count);
-
-            List<Vector2Int> roomSamples = new List<Vector2Int>(); // samples to be cached as a room
-            List<Vector2Int> cardinalSamples = new List<Vector2Int>(); // samples directly next to the samples in roomSamples that are currently -1
-
-            int roomIndex = roomCache.Count;
-
-            // get a starting point to generate the room and add to the cardinalSamples list
-            cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, _roomRandom, false));
-
-            // Generate the room recursively
-            GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
-
-            if (roomSamples.Count < _samplerSettings.MinSamplesPerRoom)
-            {
-                int result = TryMeldSamplesToExistingRoom(roomSamples, roomCache, roomIndex);
-                if(result >= 0)
-                    continue;
-            }
-
-            roomCache.Add(roomSamples);
-
-        }
-
-        foreach(var room in roomCache)
-            _rooms.Add(new Room(room));
-    }
-
-    private void GenerateRoom_Recursive(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
-    {
-        // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
-        Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, _roomRandom, true);
-        validSamples.Remove(currentSample);
-
-        // Assign roomIndex to the position on _samples and assign currentSample to roomSamples
-        _samples[currentSample.x, currentSample.y].RoomIndex = roomIndex;
-        roomSamples.Add(currentSample);
-
-        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(1, 0), roomIndex);
-        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(-1, 0), roomIndex);
-        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(0, 1), roomIndex);
-        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(0, -1), roomIndex);
-
-        // collect the cardinal samples for currentSample
-        SamplerHelperFunctions.GetCardinalSample(validSamples, cardinalSamples, currentSample);
-
-        // Call this function recursively until roomSamples.Count equal or exceed targetSize or cardinalSamples is empty
-        if (roomSamples.Count < targetSize && cardinalSamples.Count > 0)
-            GenerateRoom_Recursive(validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
-
-    }
-
-    private void ExtendRoomInDirection(List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, Vector2Int fromSample, Vector2Int direction, int roomIndex)
-    {
-        Vector2Int currentSample = fromSample + direction;
-
-        if (!cardinalSamples.Contains(currentSample)) return;
-
-        // we got a valid sample, include it in the room and remove from AvailableSamples and CardinalSamples
-        _samples[currentSample.x, currentSample.y].RoomIndex = roomIndex;
-        roomSamples.Add(currentSample);
-        validSamples.Remove(currentSample);
-        cardinalSamples.Remove(currentSample);
-
-        // run this function recursively until reaching a sample point that's not in CardinalSamples
-        ExtendRoomInDirection(validSamples, roomSamples, cardinalSamples, currentSample, direction, roomIndex);
-
-        // collect the cardinal samples for currentSample
-        SamplerHelperFunctions.GetCardinalSample(validSamples, cardinalSamples, currentSample);
-    }
-
-    /// <summary>
-    /// Try to meld the provided roomSamples to the closest neighbouring room
-    /// </summary>
-    /// <param name="roomSamples">list of samples to meld</param>
-    /// <param name="currentIndex">this is the roomIndex to ignore besides -1</param>
-    private int TryMeldSamplesToExistingRoom(List<Vector2Int> roomSamples, List<List<Vector2Int>> inRoomCache, int currentIndex)
-    {
-        List<int> roomCandidates = new List<int>();
-
-        void GetCardinalSampleValue(Vector2Int sample)
-        {
-            // make the sample is within _samples coverage
-            if (sample.x < 0 || sample.y < 0 || sample.x >= _sizeX || sample.y >= _sizeY || _samples[sample.x, sample.y] == null) return;
-
-            int index = _samples[sample.x, sample.y].RoomIndex;
-
-            if(index != currentIndex && index > -1 && !roomCandidates.Contains(index))
-                roomCandidates.Add(index);
-        };
-
-        foreach (Vector2Int sample in roomSamples)
-        {
-            GetCardinalSampleValue(sample + new Vector2Int(1, 0));
-            GetCardinalSampleValue(sample + new Vector2Int(-1, 0));
-            GetCardinalSampleValue(sample + new Vector2Int(0, 1));
-            GetCardinalSampleValue(sample + new Vector2Int(0, -1));
-        }
-
-        if (roomCandidates.Count == 0) return -1;
-
-        int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates, _roomRandom);
-
-        foreach (Vector2Int sample in roomSamples)
-        {
-            _samples[sample.x, sample.y].RoomIndex = newIndex;
-            inRoomCache[newIndex].Add(sample);
-        }
-
-        return newIndex;
     }
     
     private void CalculateWallsAndRoomConnections()
@@ -351,7 +221,7 @@ public class Interior : MonoBehaviour
 
                 // Check if we want to establish path with this room or break the path
                 bool canBreakPath = currentPathCount > 1 && nextPathCount > 1;
-                bool keepPath = (_roomRandom.Next(100) % 4) > 2;
+                bool keepPath = (_interiorRandom.Next(100) % 4) > 2;
 
                 if(canBreakPath && !keepPath)
                 {
@@ -361,7 +231,7 @@ public class Interior : MonoBehaviour
                     continue;
                 }
 
-                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], _doorRandom);
+                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], _interiorRandom);
 
                 // flag the selected wall for a door
                 Wall newDoor = _walls[wallIndex];
@@ -467,7 +337,6 @@ public class Interior : MonoBehaviour
             center.z /= 2;
 
             Gizmos.DrawCube(center, new Vector3(x, y, z));
-            //Gizmos.DrawLine(wall.Start, wall.End);
         }
     }
 }
