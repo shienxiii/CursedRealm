@@ -367,9 +367,9 @@ public class Interior : MonoBehaviour
                 Wall newDoor = _walls[wallIndex];
                 newDoor.Door = true;
 
-                // flag the samples on both sides of the door
-                _samples[newDoor.SampleA.x, newDoor.SampleA.y].State = SampleState.RESERVED;
-                _samples[newDoor.SampleB.x, newDoor.SampleB.y].State = SampleState.RESERVED;
+                // flag the samples on both sides of the door as reserved
+                _samples[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
+                _samples[newDoor.RoomB.Value.x, newDoor.RoomB.Value.y].State = SampleState.RESERVED;
 
                 // Remove both rooms from each others ConnectingWalls Dictionary
                 _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextIndex);
@@ -379,6 +379,11 @@ public class Interior : MonoBehaviour
                 _rooms[roomIndex].AddDoor(nextIndex, wallIndex);
                 _rooms[roomIndex].AddDoor(roomIndex, wallIndex);
             }
+        }
+
+        foreach(Wall wall in _walls)
+        {
+            Debug.Log(wall);
         }
     }
 
@@ -447,7 +452,7 @@ public class Interior : MonoBehaviour
 
         foreach (Wall wall in _walls)
         {
-            Color c = wall.RoomA == -1 || wall.RoomB == -1 ? Color.yellow : Color.white;
+            Color c = wall.RoomA.Key == -1 || wall.RoomB.Key == -1 ? Color.yellow : Color.white;
             c = wall.Door ? Color.red : c;
             c.a = 1;
             Gizmos.color = c;

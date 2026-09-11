@@ -1,19 +1,28 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
 [Serializable]
 public class Wall
 {
-    public int RoomA;
-    public int RoomB;
-    public Vector2Int SampleA; // Sample point of RoomA
-    public Vector2Int SampleB; // Sample point of RoomB
+    private KeyValuePair<int, Vector2Int> _roomA;
+    private KeyValuePair<int, Vector2Int> _roomB;
+
+    public KeyValuePair<int, Vector2Int> RoomA => _roomA;
+    public KeyValuePair<int, Vector2Int> RoomB => _roomB;
+
+    private Vector3 _start;
+    private Vector3 _end;
 
     // We want to know the wall span
-    public Vector3 Start;
-    public Vector3 End;
+    public Vector3 Start => _start;
+    public Vector3 End => _end;
+
+    // Direction of wall, for the sake of 
+    private Vector3 _direction;
+    public Vector3 Direction => _direction;
 
     // Flag for if this wall is a door
     public bool Door = false;
@@ -22,23 +31,27 @@ public class Wall
                 Vector2Int inSampleA, Vector2Int inSampleB,
                 Vector3 inStart, Vector3 inEnd)
     {
-        RoomA = inRoomA;
-        RoomB = inRoomB;
-        SampleA = inSampleA;
-        SampleB = inSampleB;
+        // we want to keep reference both reference even if one of them is -1
+        _roomA = new KeyValuePair<int, Vector2Int>(inRoomA, inSampleA);
+        _roomB = new KeyValuePair<int, Vector2Int>(inRoomB, inSampleB);
         
         // we want Start to hold the lower X or if they're approximately the same, the lower z
         if(inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
             inStart.z < inEnd.z && !Mathf.Approximately(inStart.z, inEnd.z))
         {
-            Start = inStart;
-            End = inEnd;
+            _start = inStart;
+            _end = inEnd;
         }
         else
         {
-            Start = inEnd;
-            End = inStart;
-        }    
+            _start = inEnd;
+            _start = inStart;
+        }
+
+
+        // direction will always be either (1,0,0) or (0,0,1)
+        _direction = _end - _start;
+        _direction.Normalize();
         
         Door = false;
     }
@@ -60,7 +73,7 @@ public class Wall
 
     public override string ToString()
     {
-        return String.Format($"Wall | {RoomA}:{RoomB} | {Start}-{End}");
+        return String.Format($"Wall | {_roomA.Key} : {_roomB.Key} | {Start}-{End} | DIR : {Direction}");
     }
 
     public static bool operator ==(Wall wallA, Wall wallB)
