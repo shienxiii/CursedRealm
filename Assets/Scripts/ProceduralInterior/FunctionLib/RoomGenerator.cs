@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public static class RoomGenerator
@@ -74,6 +75,7 @@ public static class RoomGenerator
             GenerateRoom_Recursive(interior, validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
 
     }
+
     private static void ExtendRoomInDirection(Interior interior, List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, Vector2Int fromSample, Vector2Int direction, int roomIndex)
     {
         Vector2Int currentSample = fromSample + direction;
@@ -104,7 +106,7 @@ public static class RoomGenerator
 
         void GetCardinalSampleValue(Vector2Int sample)
         {
-            // make the sample is within _samples coverage
+            // make the sample is within interior.Samples coverage
             if (sample.x < 0 || sample.y < 0 || sample.x >= interior.SizeX || sample.y >= interior.SizeY || interior.Samples[sample.x, sample.y] == null) return;
 
             int index = interior.Samples[sample.x, sample.y].RoomIndex;
@@ -133,5 +135,131 @@ public static class RoomGenerator
         }
 
         return newIndex;
+    }
+
+    public static void SampleWallAndRoomConnections(Interior interior)
+    {
+        if (interior.Samples == null || interior.Settings == null)
+            return;
+
+        int width = interior.Samples.GetLength(0);
+        int height = interior.Samples.GetLength(1);
+
+        float cellSize = interior.Settings.SampleDimension.x;
+        float halfSize = cellSize * 0.5f;
+
+        HashSet<WallSample> walls = new HashSet<WallSample>();
+
+        // Test if there is a wall between 2 sample point and add the wall
+        void ParseWall(in Vector3 start, in Vector3 end, in int roomA, in Vector2Int sampleA, in Vector2Int sampleB)
+        {
+            // test to see if next sample is within spline
+            bool isInside = sampleB.x >= 0 && sampleB.y >= 0 && sampleB.x < width && sampleB.y < height && interior.Samples[sampleB.x, sampleB.y] != null;
+
+            int roomB = isInside ? interior.Samples[sampleB.x, sampleB.y].RoomIndex : -1;
+
+            if (roomA == roomB) return;
+
+            WallSample newWall = new WallSample(roomA, roomB, new Vector2Int(sampleA.x, sampleA.y), new Vector2Int(sampleB.x, sampleB.y), start, end);
+            if (!walls.Add(newWall)) return;
+
+            interior.WallSamples.Add(newWall);
+
+            int wallIndex = interior.WallSamples.Count - 1;
+
+            // if roomA and roomB are index to actual room, add room connection here
+            if (roomA > -1 && roomB > -1)
+            {
+                interior.Rooms[roomA].AddNeighbourForRoom(roomB, wallIndex);
+                interior.Rooms[roomB].AddNeighbourForRoom(roomA, wallIndex);
+            }
+
+        }
+
+        // test from index [-1, -1] to remove the need to test for wall in left or rear direction
+        for (int x = 0; x < width; x++)
+        {
+            for (int z = 0; z < height; z++)
+            {
+                int roomA = x > -1 && z > -1 && interior.Samples[x, z] != null ? interior.Samples[x, z].RoomIndex : -1;
+
+                /** Grid Guide
+                 *  tl-----tr    
+                 *  |      |
+                 *  |      |
+                 *  bl-----br
+                 */
+                Vector3 tl = interior.GridPointToWorldPoint(x, z + 1, false);
+                Vector3 br = interior.GridPointToWorldPoint(x + 1, z, false);
+                Vector3 tr = interior.GridPointToWorldPoint(x + 1, z + 1, false);
+
+                ParseWall(br, tr, roomA,new Vector2Int(x, z), new Vector2Int(x + 1, z));
+                ParseWall(tl, tr, roomA, new Vector2Int(x, z), new Vector2Int(x, z + 1));
+
+                if (x == 0 || z == 0)
+                {
+                    Vector3 bl = interior.GridPointToWorldPoint(x, z, false);
+                    if (x == 0)
+                        ParseWall(bl, tl, roomA, new Vector2Int(x, z), new Vector2Int(x - 1, z));
+
+                    if (z == 0)
+                        ParseWall(bl, br, roomA, new Vector2Int(x, z), new Vector2Int(x, z - 1));
+                }
+            }
+        }
+
+        for (int i = 0; i < interior.Rooms.Count; i++)
+        {
+            string message = string.Format($"Room {i} : Connected Rooms {interior.Rooms[i].Neighbour.Count} |");
+            foreach (KeyValuePair<int, List<int>> connection in interior.Rooms[i].Neighbour)
+                message = string.Format($"{message} [{connection.Key} : {connection.Value.Count} walls]");
+
+            Debug.Log(message);
+        }
+    }
+
+    public static void RandomizePath(Interior interior)
+    {
+        // Go through the room connection starting from a random room and work through all
+        // DoorCandidates to determine whether to break connection or not
+    }
+
+    public static void SampleDoor(Interior interior)
+    {
+        for (int roomIndex = 0; roomIndex < interior.Rooms.Count; roomIndex++)
+        {
+            Room current= interior.Rooms[roomIndex];
+            Dictionary<int, List<int>> doorCandidates = current.Neighbour;
+            List<int> nextRooms = current.Neighbour.Keys.ToList();
+
+            foreach (int nextIndex in nextRooms)
+            {
+                Room next = interior.Rooms[nextIndex];
+
+                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], interior.InteriorRandom);
+
+                // flag the selected wall for a door
+                WallSample newDoor = interior.WallSamples[wallIndex];
+                newDoor.IsDoor = true;
+                interior.WallSamples[wallIndex] = newDoor;
+
+                // flag the samples on both sides of the door as reserved
+                interior.Samples[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
+                interior.Samples[newDoor.RoomB.Value.x, newDoor.RoomB.Value.y].State = SampleState.RESERVED;
+
+                // Remove both rooms from each others ConnectingWalls Dictionary
+                interior.Rooms[roomIndex].RemoveNeighbourForRoom(nextIndex);
+                interior.Rooms[nextIndex].RemoveNeighbourForRoom(roomIndex);
+
+                // Add reference to door
+                interior.Rooms[roomIndex].AddDoor(nextIndex, wallIndex);
+                interior.Rooms[roomIndex].AddDoor(roomIndex, wallIndex);
+            }
+        }
+
+        foreach (WallSample wall in interior.WallSamples)
+        {
+            Debug.Log(wall);
+        }
     }
 }

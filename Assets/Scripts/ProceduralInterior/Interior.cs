@@ -19,11 +19,8 @@ public class Interior : MonoBehaviour
     private Sample[,] _samples;
     private int _sizeX, _sizeY;
 
-
-
-    [SerializeField]
-    private List<Room> _rooms = new List<Room>();
-    private List<Wall> _walls = new List<Wall>();
+    [SerializeField] private List<Room> _rooms = new List<Room>();
+    private List<WallSample> _wallSamples = new List<WallSample>();
 
     [SerializeField] private Vector3 _start, _end;
 
@@ -41,7 +38,7 @@ public class Interior : MonoBehaviour
     public int SizeX => _sizeX;
     public int SizeY => _sizeY;
     public List<Room> Rooms => _rooms;
-    public List<Wall> Walls => _walls;
+    public List<WallSample> WallSamples => _wallSamples;
 
     public System.Random InteriorRandom => _interiorRandom;
 
@@ -53,10 +50,12 @@ public class Interior : MonoBehaviour
     [ContextMenu("Initialize Area")]
     public void InitializeArea()
     {
-        if (applySeed)
-            _interiorRandom = new System.Random(roomSeed);
-        else
-            _interiorRandom = new System.Random();
+        if (!applySeed)
+        {
+            System.Random random = new System.Random();
+            roomSeed = random.Next();
+        }
+        _interiorRandom = new System.Random(roomSeed);
 
         InitializeArea(_splineToDebug);
     }
@@ -70,7 +69,7 @@ public class Interior : MonoBehaviour
 
         // clear all room and wall information
         _rooms.Clear();
-        _walls.Clear();
+        _wallSamples.Clear();
 
         // Calculate the area that covers the samples
         Spline area = _areas.Splines[splineIndex];
@@ -118,143 +117,8 @@ public class Interior : MonoBehaviour
         }
 
         RoomGenerator.GenerateRooms(this, validSamples);
-        CalculateWallsAndRoomConnections();
-        GenerateDoors();
-    }
-    
-    private void CalculateWallsAndRoomConnections()
-    {
-        if (_samples == null || _samplerSettings == null)
-            return;
-
-        _walls.Clear();
-
-        int width = _samples.GetLength(0);
-        int height = _samples.GetLength(1);
-
-        float cellSize = _samplerSettings.SampleDimension.x;
-        float halfSize = cellSize * 0.5f;
-
-        HashSet<Wall> walls = new HashSet<Wall>();
-
-        // Test if there is a wall between 2 sample point and add the wall
-        void ParseWall(in Vector3 start, in Vector3 end, in int x0, in int z0, in int x1, in int z1, in int roomA)
-        {
-            // test to see if next sample is within spline
-            bool isInside = x1 >= 0 && z1 >= 0 && x1 < width && z1 < height && _samples[x1, z1] != null;
-
-            int roomB = isInside ? _samples[x1, z1].RoomIndex : -1;
-
-            if (roomA == roomB) return;
-
-            Wall newWall = new Wall(roomA, roomB, new Vector2Int(x0, z0), new Vector2Int(x1, z1), start, end);
-            if (!walls.Add(newWall)) return;
-
-            _walls.Add(newWall);
-
-            int wallIndex = _walls.Count - 1;
-
-            // if roomA and roomB are index to actual room, add room connection here
-            if(roomA > -1 && roomB > -1)
-            {
-                _rooms[roomA].AddDoorCandidateForRoom(roomB, wallIndex);
-                _rooms[roomB].AddDoorCandidateForRoom(roomA, wallIndex);
-            }
-
-        }
-
-        // test from index [-1, -1] to remove the need to test for wall in left or rear direction
-        for (int x = 0; x < width; x++)
-        {
-            for (int z = 0; z < height; z++)
-            {
-                int roomA = x > -1 && z > -1 && _samples[x, z] != null ? _samples[x, z].RoomIndex : -1;
-
-                /** Grid Shape
-                 *  tl-----tr    
-                 *  |      |
-                 *  |      |
-                 *  bl-----br
-                 */
-                Vector3 tl = GridPointToWorldPoint(x, z + 1, false);
-                Vector3 br = GridPointToWorldPoint(x + 1, z, false);
-                Vector3 tr = GridPointToWorldPoint(x + 1, z + 1, false);
-
-                ParseWall(br, tr, x, z, x + 1, z, roomA);
-                ParseWall(tl, tr, x, z, x, z + 1, roomA);
-
-                if(x == 0 || z == 0)
-                {
-                    Vector3 bl = GridPointToWorldPoint(x, z, false);
-                    if(x == 0)
-                        ParseWall(bl, tl, x, z, x - 1, z, roomA);
-
-                    if(z == 0)
-                        ParseWall(bl, br, x, z, x, z - 1, roomA);
-                }
-            }
-        }
-
-        for (int i = 0; i < _rooms.Count; i++)
-        {
-            string message = string.Format($"Room {i} : Connected Rooms {_rooms[i].DoorCandidates.Count} |");
-            foreach (KeyValuePair<int, List<int>> connection in _rooms[i].DoorCandidates)
-                message = string.Format($"{message} [{connection.Key} : {connection.Value.Count} walls]");
-
-            Debug.Log(message);
-        }
-    }
-
-    private void GenerateDoors()
-    {
-        for(int roomIndex = 0; roomIndex < _rooms.Count;roomIndex++)
-        {
-            Room current = _rooms[roomIndex];
-            Dictionary<int, List<int>> doorCandidates = current.DoorCandidates;
-            List<int> nextRooms = current.DoorCandidates.Keys.ToList();
-
-            foreach (int nextIndex in nextRooms)
-            {
-                Room next = _rooms[nextIndex];
-                int currentPathCount = current.DoorCandidates.Count + current.Doors.Count;
-                int nextPathCount = next.DoorCandidates.Count + next.Doors.Count;
-
-                // Check if we want to establish path with this room or break the path
-                bool canBreakPath = currentPathCount > 1 && nextPathCount > 1;
-                bool keepPath = (_interiorRandom.Next(100) % 4) > 2;
-
-                if(canBreakPath && !keepPath)
-                {
-                    // Remove both rooms from each others ConnectingWalls Dictionary
-                    _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextIndex);
-                    _rooms[nextIndex].RemoveDoorCandidatesForRoom(roomIndex);
-                    continue;
-                }
-
-                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], _interiorRandom);
-
-                // flag the selected wall for a door
-                Wall newDoor = _walls[wallIndex];
-                newDoor.Door = true;
-
-                // flag the samples on both sides of the door as reserved
-                _samples[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
-                _samples[newDoor.RoomB.Value.x, newDoor.RoomB.Value.y].State = SampleState.RESERVED;
-
-                // Remove both rooms from each others ConnectingWalls Dictionary
-                _rooms[roomIndex].RemoveDoorCandidatesForRoom(nextIndex);
-                _rooms[nextIndex].RemoveDoorCandidatesForRoom(roomIndex);
-
-                // Add reference to door
-                _rooms[roomIndex].AddDoor(nextIndex, wallIndex);
-                _rooms[roomIndex].AddDoor(roomIndex, wallIndex);
-            }
-        }
-
-        foreach(Wall wall in _walls)
-        {
-            Debug.Log(wall);
-        }
+        RoomGenerator.SampleWallAndRoomConnections(this);
+        RoomGenerator.SampleDoor(this);
     }
 
     public Vector3 GridPointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
@@ -312,7 +176,8 @@ public class Interior : MonoBehaviour
                     Vector3 worldPoint = GridPointToWorldPoint(u, v);
                     if (_samples != null && _samples[u, v]?.RoomIndex == i)
                     {
-                        Gizmos.color = _samples[u, v].State == SampleState.RESERVED ? Color.aquamarine : room.debugColor;
+                        //Gizmos.color = _samples[u, v].State == SampleState.RESERVED ? Color.aquamarine : room.debugColor;
+                        Gizmos.color = room.debugColor;
                         Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
                     }
                 }
@@ -320,10 +185,10 @@ public class Interior : MonoBehaviour
         }
 
 
-        foreach (Wall wall in _walls)
+        foreach (WallSample wall in _wallSamples)
         {
             Color c = wall.RoomA.Key == -1 || wall.RoomB.Key == -1 ? Color.yellow : Color.white;
-            c = wall.Door ? Color.red : c;
+            c = wall.IsDoor ? Color.red : c;
             c.a = 1;
             Gizmos.color = c;
 
