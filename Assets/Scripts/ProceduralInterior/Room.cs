@@ -30,8 +30,8 @@ public class Room
     // Temporary Dictionary to the list of walls that can be converted to a door to another room
     // Key: Next room index | Value: Walls separating this room from the next room
     // NOTE: Clear after assigning door
-    private Dictionary<int, List<int>> _neighbour = new Dictionary<int, List<int>>();
-    public Dictionary<int, List<int>> Neighbour => _neighbour;
+    private Dictionary<int, List<int>> _neighbours = new Dictionary<int, List<int>>();
+    public Dictionary<int, List<int>> Neighbours => _neighbours;
 
     public Color debugColor;
 
@@ -66,16 +66,16 @@ public class Room
 
     public void AddNeighbourForRoom(int connectingRoom, int wallIndex)
     {
-        if(!_neighbour.ContainsKey(connectingRoom))
-            _neighbour.Add(connectingRoom, new List<int> { wallIndex });
+        if(!_neighbours.ContainsKey(connectingRoom))
+            _neighbours.Add(connectingRoom, new List<int> { wallIndex });
         else
-            _neighbour[connectingRoom].Add(wallIndex);
+            _neighbours[connectingRoom].Add(wallIndex);
     }
 
 
     public void RemoveNeighbourForRoom(int connectingRoom)
     {
-        _neighbour.Remove(connectingRoom);
+        _neighbours.Remove(connectingRoom);
     }
 
     public void AddWall(int wallIndex)

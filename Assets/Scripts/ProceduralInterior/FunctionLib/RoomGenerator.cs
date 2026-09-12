@@ -210,33 +210,79 @@ public static class RoomGenerator
 
         for (int i = 0; i < interior.Rooms.Count; i++)
         {
-            string message = string.Format($"Room {i} : Connected Rooms {interior.Rooms[i].Neighbour.Count} |");
-            foreach (KeyValuePair<int, List<int>> connection in interior.Rooms[i].Neighbour)
+            string message = string.Format($"Room {i} : Connected Rooms {interior.Rooms[i].Neighbours.Count} |");
+            foreach (KeyValuePair<int, List<int>> connection in interior.Rooms[i].Neighbours)
                 message = string.Format($"{message} [{connection.Key} : {connection.Value.Count} walls]");
 
             Debug.Log(message);
         }
     }
 
-    public static void RandomizePath(Interior interior)
+    /// <summary>
+    /// Test if we can break relationship between 2 rooms
+    /// </summary>
+    /// <param name="inRooms">list holding the rooms</param>
+    /// <param name="roomA">index of room 1</param>
+    /// <param name="roomB">index of room 2</param>
+    /// <returns></returns>
+    private static bool CanBreakDirectPath(List<Room> inRooms, int roomA, int roomB)
     {
-        // Go through the room connection starting from a random room and work through all
-        // DoorCandidates to determine whether to break connection or not
+        if (inRooms.Count == 0 || roomA < 0 || roomB < 0 ||
+            roomA >= inRooms.Count || roomB >= inRooms.Count) return false;
+
+        HashSet<int> visited = new HashSet<int>();
+        Queue<int> queue = new Queue<int>();
+
+        visited.Add(roomA);
+        queue.Enqueue(roomA);
+
+        while (queue.Count > 0)
+        {
+            int roomIndex = queue.Dequeue();
+            Room room = inRooms[roomIndex];
+
+            foreach (KeyValuePair<int, List<int>> n in room.Neighbours)
+            {
+                // ignore direct connection between roomA and roomB
+                if (roomIndex == roomA && n.Key == roomB) continue;
+
+                // otherwise add unvisited room to the queue
+                if (visited.Add(n.Key))
+                {
+                    // if we reached roomB, then prematurely end this and return true
+                    if (n.Key == roomB) return true;
+
+                    queue.Enqueue(n.Key);
+                }
+            }
+        }
+
+        return false;
     }
 
     public static void SampleDoor(Interior interior)
     {
         for (int roomIndex = 0; roomIndex < interior.Rooms.Count; roomIndex++)
         {
-            Room current= interior.Rooms[roomIndex];
-            Dictionary<int, List<int>> doorCandidates = current.Neighbour;
-            List<int> nextRooms = current.Neighbour.Keys.ToList();
+            Room room = interior.Rooms[roomIndex];
+            Dictionary<int, List<int>> neighbour= room.Neighbours;
+            List<int> nextRooms = room.Neighbours.Keys.ToList();
 
             foreach (int nextIndex in nextRooms)
             {
-                Room next = interior.Rooms[nextIndex];
+                // Check if we want to establish path with this room or break the path
+                bool canBreakPath = CanBreakDirectPath(interior.Rooms, roomIndex, nextIndex);
+                bool keepPath = (interior.InteriorRandom.Next(100) % 4) > 2;
 
-                int wallIndex = SamplerHelperFunctions.GetRandomElement(doorCandidates[nextIndex], interior.InteriorRandom);
+                if (canBreakPath && !keepPath)
+                {
+                    // Remove both rooms from each others ConnectingWalls Dictionary
+                    interior.Rooms[roomIndex].RemoveNeighbourForRoom(nextIndex);
+                    interior.Rooms[nextIndex].RemoveNeighbourForRoom(roomIndex);
+                    continue;
+                }
+
+                int wallIndex = SamplerHelperFunctions.GetRandomElement(neighbour[nextIndex], interior.InteriorRandom);
 
                 // flag the selected wall for a door
                 WallSample newDoor = interior.WallSamples[wallIndex];

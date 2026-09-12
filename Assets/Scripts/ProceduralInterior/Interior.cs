@@ -188,13 +188,16 @@ public class Interior : MonoBehaviour
         foreach (WallSample wall in _wallSamples)
         {
             Color c = wall.RoomA.Key == -1 || wall.RoomB.Key == -1 ? Color.yellow : Color.white;
-            c = wall.IsDoor ? Color.red : c;
+            c = wall.IsDoor ? Color.green : c;
             c.a = 1;
             Gizmos.color = c;
 
-            float x = Mathf.Abs(wall.Start.x - wall.End.x) - 0.075f;
+            Vector3 size = wall.End - wall.Start;
+            Vector3 normalized = size.normalized;
+
+            float x = Mathf.Abs(size.x) - (normalized.x * 0.075f) + ((normalized.x - 1.0f) * 0.05f);
             float y = 2.0f;
-            float z = Mathf.Abs(wall.Start.z - wall.End.z) - 0.075f;
+            float z = Mathf.Abs(size.z) - (normalized.z * 0.075f) + ((normalized.z - 1.0f) * 0.05f);
 
             Vector3 center = wall.Start + wall.End;
             center.x /= 2;
