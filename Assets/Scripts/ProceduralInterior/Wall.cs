@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -10,6 +11,11 @@ public struct Wall
     private Vector3 _end;
     private Vector3 _direction;
     private bool _isDoor;
+
+    public Vector3 Start => _start;
+    public Vector3 End => _end;
+    public Vector3 Direction => _direction;
+    public bool IsDoor => _isDoor;
 
     public Wall(Vector3 inStart, Vector3 inEnd, bool isDoor)
     {
@@ -32,5 +38,13 @@ public struct Wall
 
         _isDoor = isDoor;
 
+    }
+
+    public Wall(in WallSample inWallSample)
+    {
+        _start = inWallSample.Start;
+        _end = inWallSample.End;
+        _direction = inWallSample.Direction;
+        _isDoor =inWallSample.IsDoor;
     }
 }

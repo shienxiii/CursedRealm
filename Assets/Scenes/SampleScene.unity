@@ -147,7 +147,7 @@ Transform:
   m_GameObject: {fileID: 179232252}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.63, y: 1.43, z: 2.67}
+  m_LocalPosition: {x: -0.44, y: 0.767, z: 5.67}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -561,7 +561,6 @@ MonoBehaviour:
   _splineToDebug: 0
   applySeed: 1
   roomSeed: 34190
-  doorSeed: 321
 --- !u!114 &422544820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1074,39 +1073,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interior
   _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
   _rooms:
-  - debugColor: {r: 0.93333334, g: 0.35686275, b: 0.57254905, a: 1}
-  - debugColor: {r: 0.28627452, g: 0.05490196, b: 0.59607846, a: 1}
-  - debugColor: {r: 0.5176471, g: 0.8156863, b: 0.3254902, a: 1}
-  - debugColor: {r: 0.8980392, g: 0.88235295, b: 0.44705883, a: 1}
-  - debugColor: {r: 0.64705884, g: 0.6039216, b: 0.75686276, a: 1}
-  - debugColor: {r: 0.89411765, g: 0.7019608, b: 0.50980395, a: 1}
-  - debugColor: {r: 0.32941177, g: 0.30980393, b: 0.8117647, a: 1}
-  - debugColor: {r: 0.8627451, g: 0.5764706, b: 0.08627451, a: 1}
-  - debugColor: {r: 0.5058824, g: 0.5254902, b: 0.3372549, a: 1}
-  - debugColor: {r: 0.105882354, g: 0.09803922, b: 0.5137255, a: 1}
-  - debugColor: {r: 0.007843138, g: 0.22352941, b: 0.5568628, a: 1}
-  - debugColor: {r: 0.19607843, g: 0.6509804, b: 0.94509804, a: 1}
-  - debugColor: {r: 0.4392157, g: 0.827451, b: 0.49411765, a: 1}
-  - debugColor: {r: 0.99607843, g: 0.3529412, b: 0.1254902, a: 1}
-  - debugColor: {r: 0.3372549, g: 0, b: 0.6509804, a: 1}
-  - debugColor: {r: 0.85490197, g: 0.6509804, b: 0.38431373, a: 1}
-  - debugColor: {r: 0.6666667, g: 0.84313726, b: 0.40784314, a: 1}
-  - debugColor: {r: 0.9607843, g: 0.22745098, b: 0.3254902, a: 1}
-  - debugColor: {r: 0.73333335, g: 0.5803922, b: 0.2784314, a: 1}
-  - debugColor: {r: 0.7882353, g: 0.9019608, b: 0.69803923, a: 1}
-  - debugColor: {r: 0.7254902, g: 0.60784316, b: 0.3764706, a: 1}
-  - debugColor: {r: 0.5764706, g: 0.39607844, b: 0.99215686, a: 1}
-  - debugColor: {r: 0.5647059, g: 0.90588236, b: 0.03529412, a: 1}
-  - debugColor: {r: 0.69803923, g: 0.34901962, b: 0.7764706, a: 1}
-  - debugColor: {r: 0.09411765, g: 0.48235294, b: 0.27450982, a: 1}
-  - debugColor: {r: 0.5372549, g: 0.8117647, b: 0.5647059, a: 1}
+  - debugColor: {r: 0.3647059, g: 0.050980393, b: 0.81960785, a: 1}
+  - debugColor: {r: 0.16078432, g: 0.011764706, b: 0.45490196, a: 1}
+  - debugColor: {r: 0.9882353, g: 0.69411767, b: 0.5764706, a: 1}
+  - debugColor: {r: 0.9254902, g: 0.73333335, b: 0.7411765, a: 1}
+  - debugColor: {r: 0.29803923, g: 0.5921569, b: 0.2, a: 1}
+  - debugColor: {r: 0.050980393, g: 0.6862745, b: 0.99607843, a: 1}
+  - debugColor: {r: 0.25882354, g: 0.06666667, b: 0.8352941, a: 1}
+  - debugColor: {r: 0.6862745, g: 0.15686275, b: 0.5372549, a: 1}
+  - debugColor: {r: 0.15686275, g: 0.33333334, b: 0.16470589, a: 1}
+  - debugColor: {r: 0.15686275, g: 0.5254902, b: 0.91764706, a: 1}
+  - debugColor: {r: 0.5058824, g: 0.9411765, b: 0.101960786, a: 1}
+  - debugColor: {r: 0.77254903, g: 0.4392157, b: 0.34117648, a: 1}
+  - debugColor: {r: 0.42745098, g: 0.972549, b: 0.8156863, a: 1}
+  - debugColor: {r: 0.2627451, g: 0.16862746, b: 0.92941177, a: 1}
+  - debugColor: {r: 0.6784314, g: 0.21176471, b: 0.7647059, a: 1}
+  - debugColor: {r: 0.46666667, g: 0.20392157, b: 0.5176471, a: 1}
+  - debugColor: {r: 0.44313726, g: 0.972549, b: 0.49803922, a: 1}
+  - debugColor: {r: 0.7490196, g: 0.6666667, b: 0.41568628, a: 1}
+  - debugColor: {r: 0.20784314, g: 0.43529412, b: 0.74509805, a: 1}
+  - debugColor: {r: 0.38431373, g: 0.4117647, b: 0.5176471, a: 1}
+  - debugColor: {r: 0.654902, g: 0.49411765, b: 0.3372549, a: 1}
+  - debugColor: {r: 0.76862746, g: 0.4745098, b: 0.5176471, a: 1}
+  - debugColor: {r: 0.25490198, g: 0.24705882, b: 0.101960786, a: 1}
+  - debugColor: {r: 0.4627451, g: 0.627451, b: 0.3647059, a: 1}
+  - debugColor: {r: 0.050980393, g: 0.84313726, b: 0.2784314, a: 1}
+  - debugColor: {r: 0.26666668, g: 0.2901961, b: 0.43137255, a: 1}
+  - debugColor: {r: 0, g: 0.2784314, b: 0.5058824, a: 1}
+  - debugColor: {r: 0.023529412, g: 0.8666667, b: 0.62352943, a: 1}
+  - debugColor: {r: 0.8039216, g: 0.84705883, b: 0.62352943, a: 1}
+  - debugColor: {r: 0.6431373, g: 0.92941177, b: 0.83137256, a: 1}
+  - debugColor: {r: 0.78039217, g: 0.9137255, b: 0.79607844, a: 1}
+  - debugColor: {r: 0.8117647, g: 0.78431374, b: 0.047058824, a: 1}
+  - debugColor: {r: 0.9372549, g: 0.27058825, b: 0.27450982, a: 1}
+  - debugColor: {r: 0.39607844, g: 0.6313726, b: 0.4392157, a: 1}
   _start: {x: -37.7, y: 0, z: -43.28}
   _end: {x: 19.75, y: 0, z: 20.8}
   _drawDebug: 1
   _splineToDebug: 0
   applySeed: 0
-  roomSeed: 34190
-  doorSeed: 321
+  roomSeed: 1800088387
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
