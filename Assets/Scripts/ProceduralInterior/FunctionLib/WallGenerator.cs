@@ -61,7 +61,7 @@ public static class WallGenerator
         // Final result after combining all wall, to be initialized in SortWallByDirectionAndLinearity()
         List<Wall> finalWalls;
 
-        List<WallCollection> wallCollections = SortWallByDirectionAndLinearity(inInterior.WallSamples, inRoom.WallSamples, out walls);
+        List<WallCollection> wallCollections = SortWallByDirectionAndLinearity(inInterior.WallSamples, inRoom.WallSamples, out finalWalls);
 
 
     }
