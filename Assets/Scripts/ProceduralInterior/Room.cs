@@ -13,17 +13,22 @@ public class Room
     private List<int> _wallSamples;
     // starting and ending grid point of the rectangle making up this room
     private Vector2Int _start, _end;
+    private List<Wall> _walls;
 
-    /// <summary>
-    // Doors to the another room
-    // Key : Room index
-    // Value : Wall index of the door
-    /// </summary>
+    
     private Dictionary<int, int> _doors = new Dictionary<int, int>();
 
     public List<int> WallSamples => _wallSamples;
     public Vector2Int Start => _start;
     public Vector2Int End => _end;
+
+    public List<Wall> Walls => _walls;
+    
+    /// <summary>
+    // Doors to the another room
+    // Key : Room index
+    // Value : Wall index of the door
+    /// </summary>
     public Dictionary<int, int> Doors => _doors;
 
 
@@ -89,5 +94,10 @@ public class Room
 
         _doors.Add(nextRoomIndex, wallIndex);
         return true;
+    }
+
+    public void SetWalls(List<Wall> inWalls)
+    {
+        _walls = inWalls;
     }
 }

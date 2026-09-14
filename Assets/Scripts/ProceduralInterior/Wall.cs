@@ -16,6 +16,7 @@ public struct Wall
     public Vector3 Start => _start;
     public Vector3 End => _end;
     public Vector3 Direction => _direction;
+    public Vector3 Normal => _normal;
     public bool IsDoor => _isDoor;
 
     public Wall(Vector3 inStart, Vector3 inEnd, Vector3 inNormal, bool isDoor)
@@ -39,15 +40,14 @@ public struct Wall
         _normal = inNormal;
 
         _isDoor = isDoor;
-
     }
 
-    public Wall(in WallSample inWallSample, in int inRoomIndex)
+    public Wall(in WallSample inWallSample, Vector3 inNormal)
     {
         _start = inWallSample.Start;
         _end = inWallSample.End;
         _direction = inWallSample.Direction;
-        _normal = inWallSample.GetWallNormal(inRoomIndex);
+        _normal = inNormal;
         _isDoor =inWallSample.IsDoor;
     }
 }

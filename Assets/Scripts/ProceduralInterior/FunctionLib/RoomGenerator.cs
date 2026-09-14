@@ -167,6 +167,13 @@ public static class RoomGenerator
 
             int wallIndex = interior.WallSamples.Count - 1;
 
+            // add reference to the sample in the rooms
+            if (roomA >= 0)
+                interior.Rooms[roomA].AddWall(wallIndex);
+
+            if (roomB >= 0)
+                interior.Rooms[roomB].AddWall(wallIndex);
+
             // if roomA and roomB are index to actual room, add room connection here
             if (roomA > -1 && roomB > -1)
             {
@@ -303,9 +310,9 @@ public static class RoomGenerator
             }
         }
 
-        foreach (WallSample wall in interior.WallSamples)
+        /*foreach (WallSample wall in interior.WallSamples)
         {
             Debug.Log(wall);
-        }
+        }*/
     }
 }

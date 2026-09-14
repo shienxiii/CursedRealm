@@ -119,6 +119,9 @@ public class Interior : MonoBehaviour
         RoomGenerator.GenerateRooms(this, validSamples);
         RoomGenerator.SampleWallAndRoomConnections(this);
         RoomGenerator.SampleDoor(this);
+
+        for (int i = 0; i < _rooms.Count; i++)
+            WallGenerator.GenerateWallForRoom(this, i);
     }
 
     public Vector3 GridPointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
@@ -182,10 +185,31 @@ public class Interior : MonoBehaviour
                     }
                 }
             }
+
+            List<Wall> walls = room.Walls;
+            foreach(Wall wall in walls)
+            {
+                Gizmos.color = wall.IsDoor ? Color.green : room.debugColor;
+
+                Vector3 size = wall.End - wall.Start;
+                Vector3 normalized = size.normalized;
+
+                float x = Mathf.Abs(size.x) - (normalized.x * 0.075f) + (normalized.z * 0.05f);
+                float y = 2.0f;
+                float z = Mathf.Abs(size.z) - (normalized.z * 0.075f) + (normalized.x * 0.05f);
+
+                Vector3 center = wall.Start + wall.End;
+                center.x /= 2;
+                center.y += 1.0f;
+                center.z /= 2;
+                center += (wall.Normal * 0.1f);
+
+                Gizmos.DrawCube(center, new Vector3(x, y, z));
+            }
         }
 
 
-        foreach (WallSample wall in _wallSamples)
+        /*foreach (WallSample wall in _wallSamples)
         {
             Color c = wall.RoomA.Key == -1 || wall.RoomB.Key == -1 ? Color.yellow : Color.white;
             c = wall.IsDoor ? Color.green : c;
@@ -205,6 +229,6 @@ public class Interior : MonoBehaviour
             center.z /= 2;
 
             Gizmos.DrawCube(center, new Vector3(x, y, z));
-        }
+        }*/
     }
 }
