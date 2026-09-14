@@ -10,6 +10,7 @@ public struct Wall
     private Vector3 _start;
     private Vector3 _end;
     private Vector3 _direction;
+    private Vector3 _normal;
     private bool _isDoor;
 
     public Vector3 Start => _start;
@@ -17,7 +18,7 @@ public struct Wall
     public Vector3 Direction => _direction;
     public bool IsDoor => _isDoor;
 
-    public Wall(Vector3 inStart, Vector3 inEnd, bool isDoor)
+    public Wall(Vector3 inStart, Vector3 inEnd, Vector3 inNormal, bool isDoor)
     {
         // we want Start to hold the lower X or if they're approximately the same, the lower z
         if (inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
@@ -32,19 +33,21 @@ public struct Wall
             _end = inStart;
         }
 
-        // direction will always be either (1,0,0) or (0,0,1)
         _direction = _end - _start;
         _direction.Normalize();
+
+        _normal = inNormal;
 
         _isDoor = isDoor;
 
     }
 
-    public Wall(in WallSample inWallSample)
+    public Wall(in WallSample inWallSample, in int inRoomIndex)
     {
         _start = inWallSample.Start;
         _end = inWallSample.End;
         _direction = inWallSample.Direction;
+        _normal = inWallSample.GetWallNormal(inRoomIndex);
         _isDoor =inWallSample.IsDoor;
     }
 }

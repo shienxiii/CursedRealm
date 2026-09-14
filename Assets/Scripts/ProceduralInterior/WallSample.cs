@@ -96,5 +96,23 @@ public struct WallSample
     {
         return !(wallA == wallB);
     }
+
+    /// <summary>
+    /// Evaluate RoomA and RoomB and return the wall normal, the direction that points toward the room
+    /// </summary>
+    /// <param name="inRoomIndex"></param>
+    /// <returns></returns>
+    public Vector3 GetWallNormal(int inRoomIndex)
+    {
+        if (inRoomIndex != _roomA.Key && inRoomIndex != _roomB.Key) return Vector3.zero;
+
+        Vector3 a = new Vector3(_roomA.Value.x, 0.0f, _roomA.Value.y);
+        Vector3 b = new Vector3(_roomB.Value.x, 0.0f, _roomB.Value.y);
+
+        if (_roomA.Key == inRoomIndex)
+            return (a - b).normalized;
+
+        return (b - a).normalized;
+    }
 }
 
