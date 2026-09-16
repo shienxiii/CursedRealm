@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ProceduralInterior.Types;
 using System.Linq;
 using UnityEngine;
 
@@ -7,7 +8,9 @@ public static class RoomGenerator
 {
     public static void GenerateRooms(Interior interior, List<Vector2Int> validSamples)
     {
-        if (!interior.Settings || (interior.Samples?.Length ?? 0) == 0 || validSamples.Count == 0) return;
+        if (!interior || validSamples  == null||
+            !interior.Settings || (interior.Samples?.Length ?? 0) == 0
+            || validSamples.Count == 0) return;
 
         int roomCount = interior.InteriorRandom.Next(interior.Settings.MinRoomCount, interior.Settings.MaxRoomCount + 1);
         int roomSizeOffset = Mathf.Abs(interior.Settings.Offset);
@@ -49,7 +52,11 @@ public static class RoomGenerator
         }
 
         foreach (var room in roomCache)
+        {
+            int roomIndex = interior.Rooms.Count;
             interior.Rooms.Add(new Room(room));
+            CalculateRoomArea(interior, roomIndex);
+        }
     }
 
     private static void GenerateRoom_Recursive(Interior interior, List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
@@ -169,10 +176,10 @@ public static class RoomGenerator
 
             // add reference to the sample in the rooms
             if (roomA >= 0)
-                interior.Rooms[roomA].AddWall(wallIndex);
+                interior.Rooms[roomA].AddWallSample(wallIndex);
 
             if (roomB >= 0)
-                interior.Rooms[roomB].AddWall(wallIndex);
+                interior.Rooms[roomB].AddWallSample(wallIndex);
 
             // if roomA and roomB are index to actual room, add room connection here
             if (roomA > -1 && roomB > -1)
@@ -309,10 +316,34 @@ public static class RoomGenerator
                 interior.Rooms[roomIndex].AddDoor(roomIndex, wallIndex);
             }
         }
+    }
 
-        /*foreach (WallSample wall in interior.WallSamples)
-        {
-            Debug.Log(wall);
-        }*/
+    private static void CalculateRoomArea(Interior interior, int roomIndex)
+    {
+        Room room = interior.Rooms[roomIndex];
+
+        Vector2Int start = room.Start;
+        Vector2Int dimension = room.Dimension;
+
+        // We want to extract from interior.Samples everything from room.Start up to and including room.End
+        bool[,] samples = ExtractSamples(interior, start, dimension, roomIndex);
+
+    }
+
+    /// <summary>
+    /// Extract a chunk of sample with a specified dimension from an Interior based on
+    /// a start point and return them as a 2d array of bool where any samples with that
+    /// matches the given roomIndex will be marked true on the array
+    /// </summary>
+    /// <param name="interior">Interior instance to extract from</param>
+    /// <param name="startPoint">The starting point</param>
+    /// <param name="dimension">The dimension of the samples to extract</param>
+    /// <param name="roomIndex">the room index to match</param>
+    /// <returns></returns>
+    private static bool[,] ExtractSamples(Interior interior, Vector2Int startPoint, Vector2Int dimension, int roomIndex)
+    {
+        bool[,] samples = new bool[dimension.x, dimension.y];
+
+        return samples;
     }
 }

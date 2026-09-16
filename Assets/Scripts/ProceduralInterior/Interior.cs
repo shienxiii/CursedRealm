@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Profiling;
+using ProceduralInterior.Types;
 using UnityEngine.Splines;
 
 [RequireComponent(typeof(SplineContainer))]
@@ -110,7 +105,7 @@ public class Interior : MonoBehaviour
                 // if grid point is vaild, create the Sample instance and add the grid point to validSamples
                 if (SamplerHelperFunctions.IsPointInsidePolygon(polygon, new Vector2(worldPoint.x, worldPoint.z)))
                 {
-                    _samples[u, v] = new Sample(-1);
+                    _samples[u, v] = new Sample();
                     validSamples.Add(new Vector2Int(u, v));
                 }
             }

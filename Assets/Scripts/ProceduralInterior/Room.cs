@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ProceduralInterior.Types;
 using UnityEngine;
 
 /// <summary>
@@ -9,18 +10,26 @@ using UnityEngine;
 [Serializable]
 public class Room
 {
-    // walls making up this room, values are index to Interior._wallSamples in owning Interior
-    private List<int> _wallSamples;
     // starting and ending grid point of the rectangle making up this room
-    private Vector2Int _start, _end;
-    private List<Wall> _walls;
+    private Vector2Int_Range _range;
 
+    /// A list of rectangular spaces making up this Room.
+    /// Each rectangles are a span continuous samples making up this room.
+    private List<Vector2Int_Range> _spaces = new List<Vector2Int_Range>();
+
+    // walls making up this room, values are index to Interior._wallSamples in owning Interior
+    private List<int> _wallSamples = new List<int>();
+
+    // Actual wall information specific to this Room after merging and processing everything in _wallSamples
+    private List<Wall> _walls = new List<Wall>();
     
     private Dictionary<int, int> _doors = new Dictionary<int, int>();
 
     public List<int> WallSamples => _wallSamples;
-    public Vector2Int Start => _start;
-    public Vector2Int End => _end;
+    public Vector2Int Start => _range.A;
+    public Vector2Int End => _range.B;
+    public Vector2Int Dimension => _range.GetDimension();
+    public List<Vector2Int_Range> Spaces => _spaces;
 
     public List<Wall> Walls => _walls;
     
@@ -42,31 +51,31 @@ public class Room
 
     public Room(List<Vector2Int> samples)
     {
-        _wallSamples = new List<int>();
-
         System.Random rand = new System.Random();
         debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
 
         if (samples.Count == 0)
         {
-            _start = _end = Vector2Int.zero;
+            _range = new Vector2Int_Range();
             return;
         }
 
         // Generate Space data
-        _start = samples[0];
-        _end = samples[0];
+        Vector2Int start = samples[0];
+        Vector2Int end = samples[0];
 
         for (int i = 1; i < samples.Count; i++)
         {
             Vector2Int p = samples[i];
 
-            _start.x = p.x < _start.x ? p.x : _start.x;
-            _start.y = p.y < _start.y ? p.y : _start.y;
+            start.x = p.x < start.x ? p.x : start.x;
+            start.y = p.y < start.y ? p.y : start.y;
 
-            _end.x = p.x > _end.x ? p.x : _end.x;
-            _end.y = p.y > _end.y ? p.y : _end.y;
+            end.x = p.x > end.x ? p.x : end.x;
+            end.y = p.y > end.y ? p.y : end.y;
         }
+
+        _range = new Vector2Int_Range(start, end);
     }
 
     public void AddNeighbourForRoom(int connectingRoom, int wallIndex)
@@ -83,7 +92,7 @@ public class Room
         _neighbours.Remove(connectingRoom);
     }
 
-    public void AddWall(int wallIndex)
+    public void AddWallSample(int wallIndex)
     {
         _wallSamples.Add(wallIndex);
     }
@@ -94,10 +103,5 @@ public class Room
 
         _doors.Add(nextRoomIndex, wallIndex);
         return true;
-    }
-
-    public void SetWalls(List<Wall> inWalls)
-    {
-        _walls = inWalls;
     }
 }
