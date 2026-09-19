@@ -11,11 +11,10 @@ using UnityEngine;
 public class Room
 {
     // starting and ending grid point of the rectangle making up this room
-    private Vector2Int_Range _range;
-
+    private GridSpan _span;
     /// A list of rectangular spaces making up this Room.
     /// Each rectangles are a span continuous samples making up this room.
-    private List<Vector2Int_Range> _spaces = new List<Vector2Int_Range>();
+    private List<GridSpan> _spaces = new List<GridSpan>();
 
     // walls making up this room, values are index to Interior._wallSamples in owning Interior
     private List<int> _wallSamples = new List<int>();
@@ -25,12 +24,11 @@ public class Room
     
     private Dictionary<int, int> _doors = new Dictionary<int, int>();
 
+    public Vector2Int Start => _span.A;
+    public Vector2Int End => _span.B;
+    public Vector2Int Dimension => _span.GetDimension();
+    public List<GridSpan> Spaces => _spaces;
     public List<int> WallSamples => _wallSamples;
-    public Vector2Int Start => _range.A;
-    public Vector2Int End => _range.B;
-    public Vector2Int Dimension => _range.GetDimension();
-    public List<Vector2Int_Range> Spaces => _spaces;
-
     public List<Wall> Walls => _walls;
     
     /// <summary>
@@ -56,7 +54,7 @@ public class Room
 
         if (samples.Count == 0)
         {
-            _range = new Vector2Int_Range();
+            _span = new GridSpan();
             return;
         }
 
@@ -75,7 +73,7 @@ public class Room
             end.y = p.y > end.y ? p.y : end.y;
         }
 
-        _range = new Vector2Int_Range(start, end);
+        _span = new GridSpan(start, end);
     }
 
     public void AddNeighbourForRoom(int connectingRoom, int wallIndex)
@@ -103,5 +101,16 @@ public class Room
 
         _doors.Add(nextRoomIndex, wallIndex);
         return true;
+    }
+
+    /// <summary>
+    /// Convert a Vector2Int from the context of this Room's context to the owning Interior's context
+    /// i.e: (u, v) will be converted to (Start.x + u, Start.Y +v)
+    /// </summary>
+    /// <param name="inPoint"></param>
+    /// <returns></returns>
+    public Vector2Int RoomPointToInteriorPoint(Vector2Int inPoint)
+    {
+        return inPoint + Start;
     }
 }

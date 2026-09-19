@@ -3,21 +3,37 @@ using UnityEngine;
 namespace ProceduralInterior.Types
 {
     // <summary>
-    /// Holds 2 Vector2Int points.
-    /// For use cases where we need to store 2 points for whatever reason.
+    /// Holds 2 Vector2Int points which represents a grid's span
     /// </summary>
-    public struct Vector2Int_Range
+    public struct GridSpan
     {
-        private Vector2Int _a;
-        private Vector2Int _b;
+        public Vector2Int A;
+        public Vector2Int B;
 
-        public Vector2Int A => _a;
-        public Vector2Int B => _b;
-
-        public Vector2Int_Range(Vector2Int inA, Vector2Int inB)
+        public GridSpan(Vector2Int init)
         {
-            _a = inA;
-            _b = inB;
+            A = B = init;
+        }
+        public GridSpan(Vector2Int inA, Vector2Int inB)
+        {
+            // ensure x and y in A is always smaller than B
+
+            A = inA;
+            B = inB;
+
+            if (A.x > B.x)
+            {
+                int aX = B.x;
+                B.x = A.x;
+                A.x = aX;
+            }
+
+            if (A.y > B.y)
+            {
+                int aY = B.y;
+                B.y = A.y;
+                A.y = aY;
+            }
         }
 
         /// <summary>
@@ -26,16 +42,24 @@ namespace ProceduralInterior.Types
         /// <returns></returns>
         public Vector2Int GetDimension()
         {
-            Vector2Int diff = _b - _a;
+            if (A == null || B == null) return Vector2Int.zero;
+
+            Vector2Int diff = B - A;
             return new Vector2Int(Mathf.Abs(diff.x) + 1, Mathf.Abs(diff.y) + 1);
+        }
+
+        public int GetArea()
+        {
+            Vector2Int dim = GetDimension();
+            return dim.x * dim.y;
         }
 
         public bool Contains(Vector2Int point)
         {
-            return point.x >= Mathf.Min(_a.x, _b.x) &&
-                   point.x <= Mathf.Max(_a.x, _b.x) &&
-                   point.y >= Mathf.Min(_a.y, _b.y) &&
-                   point.y <= Mathf.Max(_a.y, _b.y);
+            return point.x >= Mathf.Min(A.x, B.x) &&
+                   point.x <= Mathf.Max(A.x, B.x) &&
+                   point.y >= Mathf.Min(A.y, B.y) &&
+                   point.y <= Mathf.Max(A.y, B.y);
         }
     }
 
@@ -45,21 +69,23 @@ namespace ProceduralInterior.Types
     /// </summary>
     public struct Vector3_Range
     {
-        private Vector3 _a;
-        private Vector3 _b;
+        public Vector3 A;
+        public Vector3 B;
 
-        public Vector3 A => _a;
-        public Vector3 B => _b;
+        public Vector3_Range(Vector3 init)
+        {
+            A = B = init;
+        }
 
         public Vector3_Range(Vector3 inA, Vector3 inB)
         {
-            _a = inA;
-            _b = inB;
+            A = inA;
+            B = inB;
         }
 
         public float Distance()
         {
-            return (_b - _a).magnitude;
+            return (B - A).magnitude;
         }
     }
 }

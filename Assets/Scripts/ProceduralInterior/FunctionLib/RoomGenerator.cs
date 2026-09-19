@@ -9,7 +9,7 @@ public static class RoomGenerator
     public static void GenerateRooms(Interior interior, List<Vector2Int> validSamples)
     {
         if (!interior || validSamples  == null||
-            !interior.Settings || (interior.Samples?.Length ?? 0) == 0
+            !interior.Settings || (interior.Grid?.Length ?? 0) == 0
             || validSamples.Count == 0) return;
 
         int roomCount = interior.InteriorRandom.Next(interior.Settings.MinRoomCount, interior.Settings.MaxRoomCount + 1);
@@ -54,8 +54,9 @@ public static class RoomGenerator
         foreach (var room in roomCache)
         {
             int roomIndex = interior.Rooms.Count;
-            interior.Rooms.Add(new Room(room));
-            CalculateRoomArea(interior, roomIndex);
+            Room newRoom = new Room(room);
+            interior.Rooms.Add(newRoom);
+            SpaceGenerator.CalculateRoomSpaces(interior, roomIndex);
         }
     }
 
@@ -66,7 +67,7 @@ public static class RoomGenerator
         validSamples.Remove(currentSample);
 
         // Assign roomIndex to the position on interior.Samples and assign currentSample to roomSamples
-        interior.Samples[currentSample.x, currentSample.y].RoomIndex = roomIndex;
+        interior.Grid[currentSample.x, currentSample.y].RoomIndex = roomIndex;
         roomSamples.Add(currentSample);
 
         ExtendRoomInDirection(interior, validSamples, roomSamples, cardinalSamples, currentSample, new Vector2Int(1, 0), roomIndex);
@@ -90,7 +91,7 @@ public static class RoomGenerator
         if (!cardinalSamples.Contains(currentSample)) return;
 
         // we got a valid sample, include it in the room and remove from AvailableSamples and CardinalSamples
-        interior.Samples[currentSample.x, currentSample.y].RoomIndex = roomIndex;
+        interior.Grid[currentSample.x, currentSample.y].RoomIndex = roomIndex;
         roomSamples.Add(currentSample);
         validSamples.Remove(currentSample);
         cardinalSamples.Remove(currentSample);
@@ -111,12 +112,16 @@ public static class RoomGenerator
     {
         List<int> roomCandidates = new List<int>();
 
+        Sample[,] grid = interior.Grid;
+        int maxX = grid.GetLength(0);
+        int maxY = grid.GetLength(1);
+
         void GetCardinalSampleValue(Vector2Int sample)
         {
             // make the sample is within interior.Samples coverage
-            if (sample.x < 0 || sample.y < 0 || sample.x >= interior.SizeX || sample.y >= interior.SizeY || interior.Samples[sample.x, sample.y] == null) return;
+            if (sample.x < 0 || sample.y < 0 || sample.x >= maxX || sample.y >= maxY || grid[sample.x, sample.y] == null) return;
 
-            int index = interior.Samples[sample.x, sample.y].RoomIndex;
+            int index = interior.Grid[sample.x, sample.y].RoomIndex;
 
             if (index != currentIndex && index > -1 && !roomCandidates.Contains(index))
                 roomCandidates.Add(index);
@@ -137,7 +142,7 @@ public static class RoomGenerator
 
         foreach (Vector2Int sample in roomSamples)
         {
-            interior.Samples[sample.x, sample.y].RoomIndex = newIndex;
+            interior.Grid[sample.x, sample.y].RoomIndex = newIndex;
             inRoomCache[newIndex].Add(sample);
         }
 
@@ -146,11 +151,11 @@ public static class RoomGenerator
 
     public static void SampleWallAndRoomConnections(Interior interior)
     {
-        if (interior.Samples == null || interior.Settings == null)
+        if (interior.Grid == null || interior.Settings == null)
             return;
 
-        int width = interior.Samples.GetLength(0);
-        int height = interior.Samples.GetLength(1);
+        int width = interior.Grid.GetLength(0);
+        int height = interior.Grid.GetLength(1);
 
         float cellSize = interior.Settings.SampleDimension.x;
         float halfSize = cellSize * 0.5f;
@@ -161,9 +166,9 @@ public static class RoomGenerator
         void ParseWall(in Vector3 start, in Vector3 end, in int roomA, in Vector2Int sampleA, in Vector2Int sampleB)
         {
             // test to see if next sample is within spline
-            bool isInside = sampleB.x >= 0 && sampleB.y >= 0 && sampleB.x < width && sampleB.y < height && interior.Samples[sampleB.x, sampleB.y] != null;
+            bool isInside = sampleB.x >= 0 && sampleB.y >= 0 && sampleB.x < width && sampleB.y < height && interior.Grid[sampleB.x, sampleB.y] != null;
 
-            int roomB = isInside ? interior.Samples[sampleB.x, sampleB.y].RoomIndex : -1;
+            int roomB = isInside ? interior.Grid[sampleB.x, sampleB.y].RoomIndex : -1;
 
             if (roomA == roomB) return;
 
@@ -195,7 +200,7 @@ public static class RoomGenerator
         {
             for (int z = 0; z < height; z++)
             {
-                int roomA = x > -1 && z > -1 && interior.Samples[x, z] != null ? interior.Samples[x, z].RoomIndex : -1;
+                int roomA = x > -1 && z > -1 && interior.Grid[x, z] != null ? interior.Grid[x, z].RoomIndex : -1;
 
                 /** Grid Guide
                  *  tl-----tr    
@@ -222,14 +227,14 @@ public static class RoomGenerator
             }
         }
 
-        for (int i = 0; i < interior.Rooms.Count; i++)
+        /*for (int i = 0; i < interior.Rooms.Count; i++)
         {
             string message = string.Format($"Room {i} : Connected Rooms {interior.Rooms[i].Neighbours.Count} |");
             foreach (KeyValuePair<int, List<int>> connection in interior.Rooms[i].Neighbours)
                 message = string.Format($"{message} [{connection.Key} : {connection.Value.Count} walls]");
 
             Debug.Log(message);
-        }
+        }*/
     }
 
     /// <summary>
@@ -304,8 +309,8 @@ public static class RoomGenerator
                 interior.WallSamples[wallIndex] = newDoor;
 
                 // flag the samples on both sides of the door as reserved
-                interior.Samples[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
-                interior.Samples[newDoor.RoomB.Value.x, newDoor.RoomB.Value.y].State = SampleState.RESERVED;
+                interior.Grid[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
+                interior.Grid[newDoor.RoomB.Value.x, newDoor.RoomB.Value.y].State = SampleState.RESERVED;
 
                 // Remove both rooms from each others ConnectingWalls Dictionary
                 interior.Rooms[roomIndex].RemoveNeighbourForRoom(nextIndex);
@@ -318,32 +323,4 @@ public static class RoomGenerator
         }
     }
 
-    private static void CalculateRoomArea(Interior interior, int roomIndex)
-    {
-        Room room = interior.Rooms[roomIndex];
-
-        Vector2Int start = room.Start;
-        Vector2Int dimension = room.Dimension;
-
-        // We want to extract from interior.Samples everything from room.Start up to and including room.End
-        bool[,] samples = ExtractSamples(interior, start, dimension, roomIndex);
-
-    }
-
-    /// <summary>
-    /// Extract a chunk of sample with a specified dimension from an Interior based on
-    /// a start point and return them as a 2d array of bool where any samples with that
-    /// matches the given roomIndex will be marked true on the array
-    /// </summary>
-    /// <param name="interior">Interior instance to extract from</param>
-    /// <param name="startPoint">The starting point</param>
-    /// <param name="dimension">The dimension of the samples to extract</param>
-    /// <param name="roomIndex">the room index to match</param>
-    /// <returns></returns>
-    private static bool[,] ExtractSamples(Interior interior, Vector2Int startPoint, Vector2Int dimension, int roomIndex)
-    {
-        bool[,] samples = new bool[dimension.x, dimension.y];
-
-        return samples;
-    }
 }

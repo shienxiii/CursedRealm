@@ -17,7 +17,7 @@ namespace ProceduralInterior.Types
         public Vector3 Direction => _direction;
         public Vector3 Normal => _normal;
 
-        public WallCollection(WallSample inWallSample, in int inRoomIndex)
+        public WallCollection(WallSample inWallSample, int inRoomIndex)
         {
             _roomIndex = inRoomIndex;
             _normal = inWallSample.GetWallNormal(_roomIndex);

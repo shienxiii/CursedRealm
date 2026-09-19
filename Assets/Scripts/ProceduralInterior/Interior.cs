@@ -11,8 +11,7 @@ public class Interior : MonoBehaviour
 
     [SerializeField] private SamplerSettings _samplerSettings;
 
-    private Sample[,] _samples;
-    private int _sizeX, _sizeY;
+    private Sample[,] _grid;
 
     [SerializeField] private List<Room> _rooms = new List<Room>();
     private List<WallSample> _wallSamples = new List<WallSample>();
@@ -29,9 +28,7 @@ public class Interior : MonoBehaviour
 
     /*** PUBLIC PROPERTIES ***/
     public SamplerSettings Settings => _samplerSettings;
-    public Sample[,] Samples => _samples;
-    public int SizeX => _sizeX;
-    public int SizeY => _sizeY;
+    public Sample[,] Grid => _grid;
     public List<Room> Rooms => _rooms;
     public List<WallSample> WallSamples => _wallSamples;
 
@@ -88,24 +85,24 @@ public class Interior : MonoBehaviour
             _end.z = point.z > _end.z ? point.z : _end.z;
         }
 
-        _sizeX = Mathf.CeilToInt((_end.x - _start.x) / _samplerSettings.SampleDimension.x);
-        _sizeY = Mathf.CeilToInt((_end.z - _start.z) / _samplerSettings.SampleDimension.x);
+        int sizeX = Mathf.CeilToInt((_end.x - _start.x) / _samplerSettings.SampleDimension.x);
+        int sizeY = Mathf.CeilToInt((_end.z - _start.z) / _samplerSettings.SampleDimension.x);
 
         // Create the samples
-        _samples = new Sample[_sizeX,_sizeY];
+        _grid = new Sample[sizeX,sizeY];
 
 
         List<Vector2Int> validSamples = new List<Vector2Int>();
-        for(int u = 0; u < _sizeX; u++)
+        for(int u = 0; u < sizeX; u++)
         {
-            for(int v = 0; v < _sizeY; v++)
+            for(int v = 0; v < sizeY; v++)
             {
                 Vector3 worldPoint = GridPointToWorldPoint(u,v);
 
                 // if grid point is vaild, create the Sample instance and add the grid point to validSamples
                 if (SamplerHelperFunctions.IsPointInsidePolygon(polygon, new Vector2(worldPoint.x, worldPoint.z)))
                 {
-                    _samples[u, v] = new Sample();
+                    _grid[u, v] = new Sample();
                     validSamples.Add(new Vector2Int(u, v));
                 }
             }
@@ -148,9 +145,9 @@ public class Interior : MonoBehaviour
         if (_areas == null)
             _areas = GetComponent<SplineContainer>();
 
-        if (!_samplerSettings || (_samples?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
+        if (!_samplerSettings || (_grid?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
 
-        Spline area = _areas.Splines[_splineToDebug];
+       /* Spline area = _areas.Splines[_splineToDebug];
 
         Gizmos.DrawLine(new Vector3(_start.x, _start.y + 0.5f, _start.z), new Vector3(_start.x, _start.y - 0.5f, _start.z));
         Gizmos.DrawLine(new Vector3(_end.x, _end.y + 0.5f, _end.z), new Vector3(_end.x, _end.y - 0.5f, _end.z));
@@ -159,71 +156,47 @@ public class Interior : MonoBehaviour
         for(int i = 0; i < area.Count; i++)
         {
             Gizmos.DrawWireSphere(_areas.transform.TransformPoint(area[i].Position), 0.05f);
-        }
+        }*/
 
         // we want to display the debug of the room itself not the sample grid
-        for(int i = 0; i < _rooms.Count; i++)
+        foreach(Room room in _rooms)
         {
-            Room room = _rooms[i];
-            Vector2Int start = room.Start;
-
-            for (int u = room.Start.x; u <= room.End.x; u++)
+            Gizmos.color = room.debugColor;
+            foreach (GridSpan space in room.Spaces)
             {
-                for (int v = room.Start.y; v <= room.End.y; v++)
-                {
-                    Vector3 worldPoint = GridPointToWorldPoint(u, v);
-                    if (_samples != null && _samples[u, v]?.RoomIndex == i)
-                    {
-                        //Gizmos.color = _samples[u, v].State == SampleState.RESERVED ? Color.aquamarine : room.debugColor;
-                        Gizmos.color = room.debugColor;
-                        Gizmos.DrawCube(worldPoint, new Vector3(_samplerSettings.SampleDimension.x - 0.075f, 0.0f, _samplerSettings.SampleDimension.x - 0.075f));
-                    }
-                }
+                Vector2Int start = space.A;
+                Vector2Int end = space.B;
+
+                Vector3 startPoint = GridPointToWorldPoint(start.x, start.y);
+                Vector3 endPoint = GridPointToWorldPoint(end.x, end.y);
+                Vector3 center = (startPoint + endPoint) / 2;
+
+                Vector2Int dimension = space.GetDimension();
+                Vector3 size = new Vector3((_samplerSettings.SampleDimension.x * dimension.x) - 0.1f, 0.0f, (_samplerSettings.SampleDimension.x * dimension.y) - 0.1f);
+
+                Gizmos.DrawCube(center, size);
             }
 
             List<Wall> walls = room.Walls;
-            foreach(Wall wall in walls)
+            foreach (Wall wall in walls)
             {
-                Gizmos.color = wall.IsDoor ? Color.green : room.debugColor;
+                Gizmos.color = wall.IsDoor ? Color.green : Color.white;
 
                 Vector3 size = wall.End - wall.Start;
                 Vector3 normalized = size.normalized;
 
                 float x = Mathf.Abs(size.x) - (normalized.x * 0.075f) + (normalized.z * 0.05f);
-                float y = 2.0f;
+                float y = 1.0f;
                 float z = Mathf.Abs(size.z) - (normalized.z * 0.075f) + (normalized.x * 0.05f);
 
                 Vector3 center = wall.Start + wall.End;
                 center.x /= 2;
-                center.y += 1.0f;
+                center.y += 0.5f;
                 center.z /= 2;
                 center += (wall.Normal * 0.1f);
 
                 Gizmos.DrawCube(center, new Vector3(x, y, z));
             }
         }
-
-
-        /*foreach (WallSample wall in _wallSamples)
-        {
-            Color c = wall.RoomA.Key == -1 || wall.RoomB.Key == -1 ? Color.yellow : Color.white;
-            c = wall.IsDoor ? Color.green : c;
-            c.a = 1;
-            Gizmos.color = c;
-
-            Vector3 size = wall.End - wall.Start;
-            Vector3 normalized = size.normalized;
-
-            float x = Mathf.Abs(size.x) - (normalized.x * 0.075f) + ((normalized.x - 1.0f) * 0.05f);
-            float y = 2.0f;
-            float z = Mathf.Abs(size.z) - (normalized.z * 0.075f) + ((normalized.z - 1.0f) * 0.05f);
-
-            Vector3 center = wall.Start + wall.End;
-            center.x /= 2;
-            center.y += 1.0f;
-            center.z /= 2;
-
-            Gizmos.DrawCube(center, new Vector3(x, y, z));
-        }*/
     }
 }
