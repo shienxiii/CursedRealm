@@ -147,7 +147,7 @@ Transform:
   m_GameObject: {fileID: 179232252}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.44, y: 0.767, z: 5.67}
+  m_LocalPosition: {x: -10.03, y: 0.767, z: 7.07}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -529,13 +529,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interior
   _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
   _rooms:
-  - debugColor: {r: 0.30588236, g: 0.3764706, b: 0.9019608, a: 1}
+  - debugColor: {r: 0.36862746, g: 0.43137255, b: 0.62352943, a: 1}
+  - debugColor: {r: 0.827451, g: 0.27450982, b: 0.6666667, a: 1}
+  - debugColor: {r: 0.6901961, g: 0.7411765, b: 0.32941177, a: 1}
+  - debugColor: {r: 0.5686275, g: 0.26666668, b: 0.7372549, a: 1}
+  - debugColor: {r: 0.6156863, g: 0.11764706, b: 0.8745098, a: 1}
+  - debugColor: {r: 0.27058825, g: 0.09019608, b: 0.827451, a: 1}
+  - debugColor: {r: 0.5647059, g: 0.43529412, b: 0.8627451, a: 1}
+  - debugColor: {r: 0.84313726, g: 0.15294118, b: 0.67058825, a: 1}
+  - debugColor: {r: 0.5764706, g: 0.40784314, b: 0.47843137, a: 1}
+  - debugColor: {r: 0.14509805, g: 0.73333335, b: 0.06666667, a: 1}
+  - debugColor: {r: 0.52156866, g: 0.5921569, b: 0.8784314, a: 1}
+  - debugColor: {r: 0.627451, g: 0.7490196, b: 0.53333336, a: 1}
+  - debugColor: {r: 0.5647059, g: 0.43529412, b: 0.7294118, a: 1}
+  - debugColor: {r: 0.9490196, g: 0.16470589, b: 0.35686275, a: 1}
+  - debugColor: {r: 0.07450981, g: 0.53333336, b: 0.92156863, a: 1}
+  - debugColor: {r: 0.5137255, g: 0.6039216, b: 0.28627452, a: 1}
   _start: {x: -25.8, y: 0, z: 29.25}
   _end: {x: 19.75, y: 0, z: 74.8}
   _drawDebug: 1
   _splineToDebug: 0
-  applySeed: 1
-  roomSeed: 34190
+  applySeed: 0
+  roomSeed: 1713057488
 --- !u!114 &422544820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1048,13 +1063,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interior
   _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
   _rooms:
-  - debugColor: {r: 0.3372549, g: 0.5921569, b: 0.44705883, a: 1}
+  - debugColor: {r: 0.6627451, g: 0.30588236, b: 0.41568628, a: 1}
+  - debugColor: {r: 0.0627451, g: 0.7137255, b: 0.9137255, a: 1}
+  - debugColor: {r: 0.52156866, g: 0.48235294, b: 0.4509804, a: 1}
+  - debugColor: {r: 0.08627451, g: 0.5176471, b: 0.67058825, a: 1}
+  - debugColor: {r: 0.7607843, g: 0.4862745, b: 0.16470589, a: 1}
+  - debugColor: {r: 0.3137255, g: 0.6392157, b: 0.63529414, a: 1}
+  - debugColor: {r: 0.44313726, g: 0.18431373, b: 0.54901963, a: 1}
+  - debugColor: {r: 0.7294118, g: 0.74509805, b: 0.8666667, a: 1}
+  - debugColor: {r: 0.8235294, g: 0.35686275, b: 0.19607843, a: 1}
+  - debugColor: {r: 0.57254905, g: 0.64705884, b: 0.52156866, a: 1}
+  - debugColor: {r: 0.0627451, g: 0.88235295, b: 0.4509804, a: 1}
+  - debugColor: {r: 0.7490196, g: 0.5176471, b: 0.654902, a: 1}
+  - debugColor: {r: 0.8117647, g: 0.31764707, b: 0.50980395, a: 1}
+  - debugColor: {r: 0.68235296, g: 0.92941177, b: 0.49803922, a: 1}
+  - debugColor: {r: 0.19607843, g: 0.09411765, b: 0.34117648, a: 1}
+  - debugColor: {r: 0.29803923, g: 0.5372549, b: 0.4862745, a: 1}
+  - debugColor: {r: 0.84313726, g: 0.9019608, b: 0.80784315, a: 1}
+  - debugColor: {r: 0.61960787, g: 0.019607844, b: 0.9529412, a: 1}
+  - debugColor: {r: 0.39607844, g: 0.6509804, b: 0.18039216, a: 1}
   _start: {x: -37.7, y: 0, z: -43.28}
   _end: {x: 19.75, y: 0, z: 20.8}
   _drawDebug: 1
   _splineToDebug: 0
-  applySeed: 1
-  roomSeed: 1085250215
+  applySeed: 0
+  roomSeed: 532097569
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

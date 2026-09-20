@@ -6,10 +6,16 @@ using UnityEngine;
 
 public static class RoomGenerator
 {
+    /// <summary>
+    /// To be called after an interior grid sample have been initialized and valid samples have been determined.
+    /// Generate all the rooms from the provided interior and validSamples
+    /// </summary>
+    /// <param name="interior"></param>
+    /// <param name="validSamples"></param>
     public static void GenerateRooms(Interior interior, List<Vector2Int> validSamples)
     {
-        if (!interior || validSamples  == null||
-            !interior.Settings || (interior.Grid?.Length ?? 0) == 0
+        if (interior == null || validSamples  == null||
+            interior.Settings == null || (interior.Grid?.Length ?? 0) == 0
             || validSamples.Count == 0) return;
 
         int roomCount = interior.InteriorRandom.Next(interior.Settings.MinRoomCount, interior.Settings.MaxRoomCount + 1);
@@ -60,6 +66,17 @@ public static class RoomGenerator
         }
     }
 
+    /// <summary>
+    /// Use recursion to generate a Room
+    /// NEVER CALL FROM ANYWHERE ELSE OTHER THAN RoomGenerator::GenerateRooms()
+    /// AS NULL CHECKS HAVE BEEN OMITTED DUE TO THIS BEING CALLED A MASSIVE AMOUNT OF TIMES ON EVERY ROOM GENERATION
+    /// </summary>
+    /// <param name="interior">the interior in which to generate the room for</param>
+    /// <param name="validSamples">list of index to samples that are available to be used for room generation</param>
+    /// <param name="roomSamples">list of index to samples for the current room being generated</param>
+    /// <param name="cardinalSamples">list of index to available samples to directly next to all roomSamples in the cardinal directions</param>
+    /// <param name="targetSize">the minimum number of samples we want in roomSamples</param>
+    /// <param name="roomIndex">index of the room currently being generated</param>
     private static void GenerateRoom_Recursive(Interior interior, List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
     {
         // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
@@ -84,6 +101,19 @@ public static class RoomGenerator
 
     }
 
+    /// <summary>
+    /// During room generation, when we select a sample to put include in a room,
+    /// we also want to extend the inclusion in all 4 cardinal directions for all samples that are already in cardinalSamples.
+    /// DO NOT CALL ANYWHERE ELSE OTHER THAN RoomGenerator::GenerateRoom_Recursive()
+    /// AS NULL CHECKS HAVE BEEN OMITTED DUE TO THIS BEING CALLED A MASSIVE AMOUNT OF TIMES ON EVERY ROOM GENERATION
+    /// </summary>
+    /// <param name="interior">the interior in which to generate the room for</param>
+    /// <param name="validSamples">list of index to samples that are available to be used for room generation</param>
+    /// <param name="roomSamples">list of index to samples for the current room being generated</param>
+    /// <param name="cardinalSamples">list of index to available samples to directly next to all roomSamples in the cardinal directions</param>
+    /// <param name="fromSample">the sample to extend out from</param>
+    /// <param name="direction">the direction to extend towards</param>
+    /// <param name="roomIndex">index of the room currently being generated</param>
     private static void ExtendRoomInDirection(Interior interior, List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, Vector2Int fromSample, Vector2Int direction, int roomIndex)
     {
         Vector2Int currentSample = fromSample + direction;
@@ -108,8 +138,11 @@ public static class RoomGenerator
     /// </summary>
     /// <param name="roomSamples">list of samples to meld</param>
     /// <param name="currentIndex">this is the roomIndex to ignore besides -1</param>
+    /// <return>index of the room melded into</return>
     private static int TryMeldSamplesToExistingRoom(Interior interior, List<Vector2Int> roomSamples, List<List<Vector2Int>> inRoomCache, int currentIndex)
     {
+        if (interior == null || interior.Grid == null || roomSamples == null || inRoomCache == null) return -1;
+
         List<int> roomCandidates = new List<int>();
 
         Sample[,] grid = interior.Grid;
@@ -149,9 +182,14 @@ public static class RoomGenerator
         return newIndex;
     }
 
+    /// <summary>
+    /// Sample an Interior's grid an determine indentify where walls should be placed
+    /// and what room is directly next to each other
+    /// </summary>
+    /// <param name="interior">the Interior to sample</param>
     public static void SampleWallAndRoomConnections(Interior interior)
     {
-        if (interior.Grid == null || interior.Settings == null)
+        if (interior == null || interior.Grid == null || interior.Settings == null)
             return;
 
         int width = interior.Grid.GetLength(0);
@@ -246,7 +284,7 @@ public static class RoomGenerator
     /// <returns></returns>
     private static bool CanBreakDirectPath(List<Room> inRooms, int roomA, int roomB)
     {
-        if (inRooms.Count == 0 || roomA < 0 || roomB < 0 ||
+        if (inRooms == null || inRooms.Count == 0 || roomA < 0 || roomB < 0 ||
             roomA >= inRooms.Count || roomB >= inRooms.Count) return false;
 
         HashSet<int> visited = new HashSet<int>();
@@ -279,8 +317,16 @@ public static class RoomGenerator
         return false;
     }
 
+    /// <summary>
+    /// Go through all Room's relations in an Interior and determine if it certain rooms can still
+    /// be reached if it's connection is severed with another room.
+    /// If yes, flip coins and determine whether to sever it or keep it
+    /// </summary>
+    /// <param name="interior"></param>
     public static void SampleDoor(Interior interior)
     {
+        if(interior == null) return;
+
         for (int roomIndex = 0; roomIndex < interior.Rooms.Count; roomIndex++)
         {
             Room room = interior.Rooms[roomIndex];

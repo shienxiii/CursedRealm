@@ -60,7 +60,7 @@ public static class WallGenerator
         // Sort the wall in order
         SortWalls(inWallCollection);
 
-        List<Vector3_Range> walls = inWallCollection.Walls;
+        List<Vector3Range> walls = inWallCollection.Walls;
 
         // And generate the final wall
         int start = 0;

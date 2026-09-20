@@ -8,12 +8,12 @@ namespace ProceduralInterior.Types
     {
         // Need to store the room index to query the wall sample when checking wall's normal
         private int _roomIndex;
-        private List<Vector3_Range> _walls;
+        private List<Vector3Range> _walls;
         private Vector3 _direction;
         private Vector3 _normal;
         private float _linearity;
 
-        public List<Vector3_Range> Walls => _walls;
+        public List<Vector3Range> Walls => _walls;
         public Vector3 Direction => _direction;
         public Vector3 Normal => _normal;
 
@@ -23,7 +23,7 @@ namespace ProceduralInterior.Types
             _normal = inWallSample.GetWallNormal(_roomIndex);
             _direction = inWallSample.Direction;
 
-            Vector3_Range firstWall = inWallSample.GetAsVectorRange(); ;
+            Vector3Range firstWall = inWallSample.GetAsVectorRange(); ;
 
             _walls = new() { firstWall };
 

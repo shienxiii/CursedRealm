@@ -121,9 +121,9 @@ namespace ProceduralInterior.Types
         /// where A == Start and B == End
         /// </summary>
         /// <returns></returns>
-        public Vector3_Range GetAsVectorRange()
+        public Vector3Range GetAsVectorRange()
         {
-            return new Vector3_Range(Start, End);
+            return new Vector3Range(Start, End);
         }
     }
 

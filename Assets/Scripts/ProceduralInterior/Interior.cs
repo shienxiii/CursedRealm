@@ -147,18 +147,6 @@ public class Interior : MonoBehaviour
 
         if (!_samplerSettings || (_grid?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
 
-       /* Spline area = _areas.Splines[_splineToDebug];
-
-        Gizmos.DrawLine(new Vector3(_start.x, _start.y + 0.5f, _start.z), new Vector3(_start.x, _start.y - 0.5f, _start.z));
-        Gizmos.DrawLine(new Vector3(_end.x, _end.y + 0.5f, _end.z), new Vector3(_end.x, _end.y - 0.5f, _end.z));
-
-        Gizmos.color = Color.yellow;
-        for(int i = 0; i < area.Count; i++)
-        {
-            Gizmos.DrawWireSphere(_areas.transform.TransformPoint(area[i].Position), 0.05f);
-        }*/
-
-        // we want to display the debug of the room itself not the sample grid
         foreach(Room room in _rooms)
         {
             Gizmos.color = room.debugColor;
