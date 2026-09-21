@@ -13,8 +13,7 @@ namespace ProceduralInterior.Types
     {
         private KeyValuePair<int, Vector2Int> _roomA;
         private KeyValuePair<int, Vector2Int> _roomB;
-        private Vector3 _start;
-        private Vector3 _end;
+        private Vector3Range _endPoints;
         private Vector3 _direction;
         // Flag for if this wall is a door
         public bool IsDoor;
@@ -23,15 +22,13 @@ namespace ProceduralInterior.Types
         /*** PUBLIC PROPERTIES ***/
         public KeyValuePair<int, Vector2Int> RoomA => _roomA;
         public KeyValuePair<int, Vector2Int> RoomB => _roomB;
-        // We want to know the wall span
-        public Vector3 Start => _start;
-        public Vector3 End => _end;
+        // We want to know the sample span
+        public Vector3 Start => _endPoints.A;
+        public Vector3 End => _endPoints.B;
 
         // Direction of wall stretch, for the sake of simplicy,
         // direction will always be either (1,0,0) or (0,0,1)
         public Vector3 Direction => _direction;
-
-
 
         public WallSample(int inRoomA, int inRoomB,
                     Vector2Int inSampleA, Vector2Int inSampleB,
@@ -45,18 +42,18 @@ namespace ProceduralInterior.Types
             if (inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
                 inStart.z < inEnd.z && !Mathf.Approximately(inStart.z, inEnd.z))
             {
-                _start = inStart;
-                _end = inEnd;
+                _endPoints.A = inStart;
+                _endPoints.B = inEnd;
             }
             else
             {
-                _start = inEnd;
-                _end = inStart;
+                _endPoints.A = inEnd;
+                _endPoints.B = inStart;
             }
 
 
             // direction will always be either (1,0,0) or (0,0,1)
-            _direction = _end - _start;
+            _direction = _endPoints.B - _endPoints.A;
             _direction.Normalize();
 
             IsDoor = false;

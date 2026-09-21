@@ -15,11 +15,13 @@ public static class WallGenerator
         if(inInterior == null || roomIndex < 0 || roomIndex >= inInterior.Rooms.Count) return;
 
         Room room = inInterior.Rooms[roomIndex];
+        if(room == null ) return;
 
-        List<WallCollection> wallCollections = SortWallByDirectionAndLinearity(inInterior.WallSamples, roomIndex, room.WallSamples, room.Walls);
+        List<WallGroup> wallGroups = SortWallByDirectionAndLinearity(inInterior.WallSamples, roomIndex, room.WallSamples, room.Walls);
+        if(wallGroups == null) return;
 
-        foreach (WallCollection wallCollection in wallCollections)
-            MergeWalls(wallCollection, room.Walls);
+        foreach (WallGroup wallGroup in wallGroups)
+            MergeWalls(wallGroup, room);
     }
 
     /// <summary>
@@ -27,9 +29,11 @@ public static class WallGenerator
     /// </summary>
     /// <param name="inSamples"></param>
     /// <param name="inWallIndexes"></param>
-    private static List<WallCollection> SortWallByDirectionAndLinearity(in List<WallSample> inSamples, in int inRoomIndex, in List<int> inWallIndexes, List<Wall> outDoors)
+    private static List<WallGroup> SortWallByDirectionAndLinearity(List<WallSample> inSamples, int inRoomIndex, List<int> inWallIndexes, List<Wall> outDoors)
     {
-        List<WallCollection> walls = new List<WallCollection>();
+        if (inSamples == null || inWallIndexes == null || outDoors == null) return null;
+
+        List<WallGroup> walls = new List<WallGroup>();
 
         foreach (int wallIndex in inWallIndexes)
         {
@@ -42,25 +46,30 @@ public static class WallGenerator
                 continue;
             }
 
-            // Sort into a WallCollection
+            // Sort into a WallGroup
             bool wallAdded = false;
 
-            // parse against every existing WallCollection
+            // parse against every existing WallGroups
             for (int i = 0; i < walls.Count && !wallAdded; i++)
                 wallAdded = walls[i].TryAdd(sample);
 
             if(!wallAdded)
-                walls.Add(new WallCollection(sample, inRoomIndex));
+                walls.Add(new WallGroup(sample, inRoomIndex));
         }
         return walls;
     }
 
-    public static void MergeWalls(WallCollection inWallCollection, List<Wall> outWalls)
+    private static void MergeWalls(WallGroup inWallGroup, Room inRoom)
     {
-        // Sort the wall in order
-        SortWalls(inWallCollection);
+        if (inWallGroup == null || inWallGroup.Walls == null || inRoom == null) return;
 
-        List<Vector3Range> walls = inWallCollection.Walls;
+        // Sort the walls so they're in ascending order based on their direction
+        if (inWallGroup.Direction == Vector3.right)
+            inWallGroup.Walls.Sort((a, b) => (a.A.x.CompareTo(b.A.x)));
+        else
+            inWallGroup.Walls.Sort((a, b) => (a.B.z.CompareTo(b.B.z)));
+
+        List<Vector3Range> walls = inWallGroup.Walls;
 
         // And generate the final wall
         int start = 0;
@@ -71,7 +80,7 @@ public static class WallGenerator
             if (!CustomVectorMath.EqualWithTolerance(walls[end].B, walls[i].A))
             {
                 // if not continuous, create a new wall with current start and end
-                outWalls.Add(new Wall(walls[start].A, walls[end].B, inWallCollection.Normal, false));
+                inRoom.Walls.Add(new Wall(walls[start].A, walls[end].B, inWallGroup.Normal, false));
 
                 // reassign start
                 start = i;
@@ -81,15 +90,64 @@ public static class WallGenerator
             end = i;
         }
 
-        outWalls.Add(new Wall(walls[start].A, walls[end].B, inWallCollection.Normal, false));
+        inRoom.Walls.Add(new Wall(walls[start].A, walls[end].B, inWallGroup.Normal, false));
     }
 
-    public static void SortWalls(WallCollection inWallCollections)
+    /// <summary>
+    ///  Used to store a group of wall samples with matching direction, normal and linearity
+    ///  in the context of the stored room index
+    /// </summary>
+    private class WallGroup
     {
-        // sort the walls so they're in ascending order based on their direction
-        if(inWallCollections.Direction == Vector3.right)
-            inWallCollections.Walls.Sort((a, b) => (a.A.x.CompareTo(b.A.x)));
-        else
-            inWallCollections.Walls.Sort((a, b) => (a.B.z.CompareTo(b.B.z)));
+        // Need to store the room index to query the wall sample when checking wall's normal
+        private int _roomIndex;
+        private List<Vector3Range> _walls;
+        private Vector3 _direction;
+        private Vector3 _normal;
+        private float _linearity;
+
+        public List<Vector3Range> Walls => _walls;
+        public Vector3 Direction => _direction;
+        public Vector3 Normal => _normal;
+
+        public WallGroup(WallSample inWallSample, int inRoomIndex)
+        {
+            _roomIndex = inRoomIndex;
+            _normal = inWallSample.GetWallNormal(_roomIndex);
+            _direction = inWallSample.Direction;
+
+            Vector3Range firstWall = inWallSample.GetAsVectorRange(); ;
+
+            _walls = new() { firstWall };
+
+            _linearity = _direction == Vector3.right
+                ? firstWall.A.z
+                : firstWall.A.x;
+        }
+
+        private bool CanContain(WallSample sample)
+        {
+            if (sample.Direction != _direction)
+                return false;
+
+            Vector3 normal = sample.GetWallNormal(_roomIndex);
+
+            if (Vector3.Dot(normal, _normal) < 0.9999f) return false;
+
+            float linearity = _direction == Vector3.right
+                ? sample.Start.z
+                : sample.Start.x;
+
+            return Mathf.Approximately(_linearity, linearity);
+        }
+
+        public bool TryAdd(WallSample sample)
+        {
+            if (!CanContain(sample)) return false;
+
+            _walls.Add(sample.GetAsVectorRange());
+
+            return true;
+        }
     }
 }

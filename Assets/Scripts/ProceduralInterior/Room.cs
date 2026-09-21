@@ -10,8 +10,9 @@ using UnityEngine;
 [Serializable]
 public class Room
 {
-    // starting and ending grid point of the rectangle making up this room
+    // Starting and ending grid point of the rectangle making up this room
     private GridSpan _span;
+
     /// A list of rectangular spaces making up this Room.
     /// Each rectangles are a span continuous samples making up this room.
     private List<GridSpan> _spaces = new List<GridSpan>();
