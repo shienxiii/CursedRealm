@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProceduralInterior.Types;
+using ProceduralInterior.FunctionLib;
 using UnityEngine.Splines;
 
 [RequireComponent(typeof(SplineContainer))]
