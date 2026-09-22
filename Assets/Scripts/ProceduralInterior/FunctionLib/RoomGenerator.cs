@@ -16,12 +16,14 @@ namespace ProceduralInterior.FunctionLib
         /// <param name="validSamples"></param>
         public static void GenerateRooms(Interior interior, List<Vector2Int> validSamples)
         {
+            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+
             if (interior == null || validSamples == null ||
-                interior.Settings == null || (interior.Grid?.Length ?? 0) == 0
+                settings == null || (interior.Grid?.Length ?? 0) == 0
                 || validSamples.Count == 0) return;
 
-            int roomCount = interior.InteriorRandom.Next(interior.Settings.MinRoomCount, interior.Settings.MaxRoomCount + 1);
-            int roomSizeOffset = Mathf.Abs(interior.Settings.Offset);
+            int roomCount = interior.InteriorRandom.Next(settings.MinRoomCount, settings.MaxRoomCount + 1);
+            int roomSizeOffset = Mathf.Abs(settings.Offset);
 
             // We want to cache the room samples before creating the Room objects
             List<List<Vector2Int>> roomCache = new List<List<Vector2Int>>();
@@ -30,11 +32,11 @@ namespace ProceduralInterior.FunctionLib
 
             while (validSamples.Count > 0)
             {
-                if (roomCount - interior.Rooms.Count <= 0 || validSamples.Count < interior.Settings.MinSamplesPerRoom)
+                if (roomCount - interior.Rooms.Count <= 0 || validSamples.Count < settings.MinSamplesPerRoom)
                     targetSize = validSamples.Count;
                 else
                     targetSize = Math.Clamp((validSamples.Count / roomCount) + interior.InteriorRandom.Next(-roomSizeOffset, roomSizeOffset + 1),
-                                interior.Settings.MinSamplesPerRoom,
+                                settings.MinSamplesPerRoom,
                                 validSamples.Count);
 
                 List<Vector2Int> roomSamples = new List<Vector2Int>(); // samples to be cached as a room
@@ -48,7 +50,7 @@ namespace ProceduralInterior.FunctionLib
                 // Generate the room recursively
                 GenerateRoom_Recursive(interior, validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
 
-                if (roomSamples.Count < interior.Settings.MinSamplesPerRoom)
+                if (roomSamples.Count < settings.MinSamplesPerRoom)
                 {
                     int result = TryMeldSamplesToExistingRoom(interior, roomSamples, roomCache, roomIndex);
                     if (result >= 0)
@@ -191,13 +193,15 @@ namespace ProceduralInterior.FunctionLib
         /// <param name="interior">the Interior to sample</param>
         public static void SampleWallAndRoomConnections(Interior interior)
         {
-            if (interior == null || interior.Grid == null || interior.Settings == null)
+            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+
+            if (interior == null || interior.Grid == null || settings == null)
                 return;
 
             int width = interior.Grid.GetLength(0);
             int height = interior.Grid.GetLength(1);
 
-            float cellSize = interior.Settings.SampleDimension.x;
+            float cellSize = settings.SampleDimension.x;
             float halfSize = cellSize * 0.5f;
 
             HashSet<WallSample> walls = new HashSet<WallSample>();

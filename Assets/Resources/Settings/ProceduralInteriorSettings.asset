@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 195d33cfcd3d16d418a745cc7b539edc, type: 3}
-  m_Name: SamplerSettings
-  m_EditorClassIdentifier: Assembly-CSharp::SamplerSettings
+  m_Name: ProceduralInteriorSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ProceduralInteriorSettings
   _sampleDimension: {x: 2, y: 3}
-  _minRoomCount: 6
-  _maxRoomCount: 7
-  _offset: 3
-  _minSamplesPerRoom: 6
+  _minRoomCount: 5
+  _maxRoomCount: 10
+  _offset: 5
+  _minSamplesPerRoom: 4

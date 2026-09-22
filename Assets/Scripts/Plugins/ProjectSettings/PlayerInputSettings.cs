@@ -6,9 +6,6 @@ using UnityEngine.InputSystem;
 [CreateAssetMenu(fileName = "PlayerInputSettings", menuName = "Scriptable Objects/PlayerInputSettings")]
 public class PlayerInputSettings : ScriptableObject
 {
-    private const string _subDir = "Settings/";
-    private const string _asset = "PlayerInputSettings";
-
     // The InputAction asset to be used for player input
     [SerializeField] private InputActionAsset _inputActionAsset = null;
     [SerializeField] private string _actionMap_Play = "Player";
@@ -17,6 +14,9 @@ public class PlayerInputSettings : ScriptableObject
     public InputActionAsset InputActionAsset {  get { return _inputActionAsset; } }
     public string ActionMap_Play { get { return _actionMap_Play; } }
     public string ActionMap_UI { get { return _actionMap_UI; } }
+
+    private const string _subDir = "Settings/";
+    private const string _asset = "PlayerInputSettings";
 
     public static PlayerInputSettings TryGetSettings()
     {
@@ -34,8 +34,8 @@ public class PlayerInputSettings : ScriptableObject
 
         if(!File.Exists(Path))
         {
-            if (!Directory.Exists(_directory))
-                Directory.CreateDirectory(_directory);
+            if (!Directory.Exists(_directory + _subDir))
+                Directory.CreateDirectory(_directory + _subDir);
             settings = CreateInstance<PlayerInputSettings>();
             AssetDatabase.CreateAsset(settings, Path);
             AssetDatabase.SaveAssets();

@@ -10,8 +10,6 @@ public class Interior : MonoBehaviour
     // Components
     private SplineContainer _areas;
 
-    [SerializeField] private SamplerSettings _samplerSettings;
-
     private Sample[,] _grid;
 
     [SerializeField] private List<Room> _rooms = new List<Room>();
@@ -28,7 +26,6 @@ public class Interior : MonoBehaviour
     private System.Random _interiorRandom;
 
     /*** PUBLIC PROPERTIES ***/
-    public SamplerSettings Settings => _samplerSettings;
     public Sample[,] Grid => _grid;
     public List<Room> Rooms => _rooms;
     public List<WallSample> WallSamples => _wallSamples;
@@ -58,7 +55,9 @@ public class Interior : MonoBehaviour
         if(_areas == null)
             _areas = GetComponent<SplineContainer>();
 
-        if (!_samplerSettings || _areas.Splines.Count == 0 || splineIndex >= _areas.Splines.Count) return;
+        ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+
+        if (!settings || _areas.Splines.Count == 0 || splineIndex >= _areas.Splines.Count) return;
 
         // clear all room and wall information
         _rooms.Clear();
@@ -86,8 +85,8 @@ public class Interior : MonoBehaviour
             _end.z = point.z > _end.z ? point.z : _end.z;
         }
 
-        int sizeX = Mathf.CeilToInt((_end.x - _start.x) / _samplerSettings.SampleDimension.x);
-        int sizeY = Mathf.CeilToInt((_end.z - _start.z) / _samplerSettings.SampleDimension.x);
+        int sizeX = Mathf.CeilToInt((_end.x - _start.x) / settings.SampleDimension.x);
+        int sizeY = Mathf.CeilToInt((_end.z - _start.z) / settings.SampleDimension.x);
 
         // Create the samples
         _grid = new Sample[sizeX,sizeY];
@@ -119,23 +118,25 @@ public class Interior : MonoBehaviour
 
     public Vector3 GridPointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
     {
-        if (!_samplerSettings) return Vector3.zero;
+        ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+
+        if (!settings) return Vector3.zero;
 
         Vector3 worldPoint = _start;
 
         if (bCenterH)
         {
-            worldPoint.x += (x * _samplerSettings.SampleDimension.x) + (_samplerSettings.SampleDimension.x / 2);
-            worldPoint.z += (z * _samplerSettings.SampleDimension.x) + (_samplerSettings.SampleDimension.x / 2);
+            worldPoint.x += (x * settings.SampleDimension.x) + (settings.SampleDimension.x / 2);
+            worldPoint.z += (z * settings.SampleDimension.x) + (settings.SampleDimension.x / 2);
         }
         else
         {
-            worldPoint.x += (x * _samplerSettings.SampleDimension.x);
-            worldPoint.z += (z * _samplerSettings.SampleDimension.x);
+            worldPoint.x += (x * settings.SampleDimension.x);
+            worldPoint.z += (z * settings.SampleDimension.x);
         }
 
         if (bCenterV)
-            worldPoint.y += (_samplerSettings.SampleDimension.y / 2);
+            worldPoint.y += (settings.SampleDimension.y / 2);
 
         return worldPoint;
     }
@@ -146,7 +147,9 @@ public class Interior : MonoBehaviour
         if (_areas == null)
             _areas = GetComponent<SplineContainer>();
 
-        if (!_samplerSettings || (_grid?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
+        ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+
+        if (!settings || (_grid?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
 
         foreach(Room room in _rooms)
         {
@@ -161,7 +164,7 @@ public class Interior : MonoBehaviour
                 Vector3 center = (startPoint + endPoint) / 2;
 
                 Vector2Int dimension = space.GetDimension();
-                Vector3 size = new Vector3((_samplerSettings.SampleDimension.x * dimension.x) - 0.1f, 0.0f, (_samplerSettings.SampleDimension.x * dimension.y) - 0.1f);
+                Vector3 size = new Vector3((settings.SampleDimension.x * dimension.x) - 0.1f, 0.0f, (settings.SampleDimension.x * dimension.y) - 0.1f);
 
                 Gizmos.DrawCube(center, size);
             }

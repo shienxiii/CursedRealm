@@ -527,7 +527,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e6b452712f6e154b9747f2cb03a5cdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interior
-  _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
   _rooms:
   - debugColor: {r: 0.36862746, g: 0.43137255, b: 0.62352943, a: 1}
   - debugColor: {r: 0.827451, g: 0.27450982, b: 0.6666667, a: 1}
@@ -1061,33 +1060,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e6b452712f6e154b9747f2cb03a5cdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interior
-  _samplerSettings: {fileID: 11400000, guid: 8a095ea1f74c28e4999dab2519e4d6c7, type: 2}
   _rooms:
-  - debugColor: {r: 0.6627451, g: 0.30588236, b: 0.41568628, a: 1}
-  - debugColor: {r: 0.0627451, g: 0.7137255, b: 0.9137255, a: 1}
-  - debugColor: {r: 0.52156866, g: 0.48235294, b: 0.4509804, a: 1}
-  - debugColor: {r: 0.08627451, g: 0.5176471, b: 0.67058825, a: 1}
-  - debugColor: {r: 0.7607843, g: 0.4862745, b: 0.16470589, a: 1}
-  - debugColor: {r: 0.3137255, g: 0.6392157, b: 0.63529414, a: 1}
-  - debugColor: {r: 0.44313726, g: 0.18431373, b: 0.54901963, a: 1}
-  - debugColor: {r: 0.7294118, g: 0.74509805, b: 0.8666667, a: 1}
-  - debugColor: {r: 0.8235294, g: 0.35686275, b: 0.19607843, a: 1}
-  - debugColor: {r: 0.57254905, g: 0.64705884, b: 0.52156866, a: 1}
-  - debugColor: {r: 0.0627451, g: 0.88235295, b: 0.4509804, a: 1}
-  - debugColor: {r: 0.7490196, g: 0.5176471, b: 0.654902, a: 1}
-  - debugColor: {r: 0.8117647, g: 0.31764707, b: 0.50980395, a: 1}
-  - debugColor: {r: 0.68235296, g: 0.92941177, b: 0.49803922, a: 1}
-  - debugColor: {r: 0.19607843, g: 0.09411765, b: 0.34117648, a: 1}
-  - debugColor: {r: 0.29803923, g: 0.5372549, b: 0.4862745, a: 1}
-  - debugColor: {r: 0.84313726, g: 0.9019608, b: 0.80784315, a: 1}
-  - debugColor: {r: 0.61960787, g: 0.019607844, b: 0.9529412, a: 1}
-  - debugColor: {r: 0.39607844, g: 0.6509804, b: 0.18039216, a: 1}
+  - debugColor: {r: 0.53333336, g: 0.4, b: 0.7372549, a: 1}
+  - debugColor: {r: 0.050980393, g: 0.06666667, b: 0.043137256, a: 1}
+  - debugColor: {r: 0.44705883, g: 0.7882353, b: 0.31764707, a: 1}
+  - debugColor: {r: 0.8862745, g: 0.22745098, b: 0.19215687, a: 1}
+  - debugColor: {r: 0.5647059, g: 0.6392157, b: 0.03529412, a: 1}
+  - debugColor: {r: 0.85882354, g: 0.7254902, b: 0.23529412, a: 1}
+  - debugColor: {r: 0.38039216, g: 0.35686275, b: 0.69411767, a: 1}
+  - debugColor: {r: 0.7372549, g: 0.5529412, b: 0.6117647, a: 1}
+  - debugColor: {r: 0.05490196, g: 0.6509804, b: 0.22745098, a: 1}
+  - debugColor: {r: 0.5176471, g: 0.3764706, b: 0.34901962, a: 1}
+  - debugColor: {r: 0.1882353, g: 0.99607843, b: 0.09019608, a: 1}
+  - debugColor: {r: 0.05882353, g: 0.56078434, b: 0.8117647, a: 1}
+  - debugColor: {r: 0.050980393, g: 0.6627451, b: 0.1254902, a: 1}
+  - debugColor: {r: 0.8, g: 0.14509805, b: 0.6509804, a: 1}
+  - debugColor: {r: 0.011764706, g: 0.1764706, b: 0.54509807, a: 1}
+  - debugColor: {r: 0.5058824, g: 0.12156863, b: 0.27450982, a: 1}
+  - debugColor: {r: 0.015686275, g: 0.87058824, b: 0.53333336, a: 1}
+  - debugColor: {r: 0.9882353, g: 0.56078434, b: 0.26666668, a: 1}
+  - debugColor: {r: 0.19607843, g: 0.015686275, b: 0.6627451, a: 1}
+  - debugColor: {r: 0.8745098, g: 0.2784314, b: 0.2509804, a: 1}
+  - debugColor: {r: 0.98039216, g: 0.1254902, b: 0.11764706, a: 1}
+  - debugColor: {r: 0.1882353, g: 0.3019608, b: 0.9843137, a: 1}
+  - debugColor: {r: 0.25490198, g: 0.7607843, b: 0.019607844, a: 1}
+  - debugColor: {r: 0.63529414, g: 0.047058824, b: 0.8235294, a: 1}
+  - debugColor: {r: 0.1254902, g: 0.25882354, b: 0.46666667, a: 1}
+  - debugColor: {r: 0.15686275, g: 0.18431373, b: 0.64705884, a: 1}
+  - debugColor: {r: 0.4, g: 0.91764706, b: 0.19607843, a: 1}
+  - debugColor: {r: 0.13725491, g: 0.5137255, b: 0.73333335, a: 1}
+  - debugColor: {r: 0.44705883, g: 0.02745098, b: 0.89411765, a: 1}
   _start: {x: -37.7, y: 0, z: -43.28}
   _end: {x: 19.75, y: 0, z: 20.8}
   _drawDebug: 1
   _splineToDebug: 0
-  applySeed: 0
-  roomSeed: 532097569
+  applySeed: 1
+  roomSeed: 666892538
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

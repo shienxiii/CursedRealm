@@ -6,13 +6,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "InteractionSystemSettings", menuName = "Scriptable Objects/InteractionSystemSettings")]
 public class InteractionSystemSettings : ScriptableObject
 {
-    private const string _subDir = "Settings/";
-    private const string _asset = "InteractionSystemSettings";
-
     // This is the layer for all interactable object
     [SerializeField] private LayerMask _layerMask;
 
     public LayerMask LayerMask { get { return _layerMask; } }
+
+    private const string _subDir = "Settings/";
+    private const string _asset = "InteractionSystemSettings";
 
     public static InteractionSystemSettings TryGetSettings()
     {
@@ -30,8 +30,8 @@ public class InteractionSystemSettings : ScriptableObject
 
         if (!File.Exists(Path))
         {
-            if (!Directory.Exists(_directory))
-                Directory.CreateDirectory(_directory);
+            if (!Directory.Exists(_directory + _subDir))
+                Directory.CreateDirectory(_directory + _subDir);
             settings = CreateInstance<InteractionSystemSettings>();
             AssetDatabase.CreateAsset(settings, Path);
             AssetDatabase.SaveAssets();
