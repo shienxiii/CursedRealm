@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[CreateAssetMenu(fileName = "PlayerInputSettings", menuName = "Scriptable Objects/PlayerInputSettings")]
 public class PlayerInputSettings : ScriptableObject
 {
     // The InputAction asset to be used for player input

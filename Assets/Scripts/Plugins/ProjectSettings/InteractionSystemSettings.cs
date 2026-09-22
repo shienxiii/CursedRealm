@@ -3,7 +3,6 @@ using System.Linq.Expressions;
 using UnityEditor;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "InteractionSystemSettings", menuName = "Scriptable Objects/InteractionSystemSettings")]
 public class InteractionSystemSettings : ScriptableObject
 {
     // This is the layer for all interactable object

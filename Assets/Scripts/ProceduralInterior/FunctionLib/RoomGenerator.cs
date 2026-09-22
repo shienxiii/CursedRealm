@@ -364,13 +364,17 @@ namespace ProceduralInterior.FunctionLib
                     interior.Grid[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
                     interior.Grid[newDoor.RoomB.Value.x, newDoor.RoomB.Value.y].State = SampleState.RESERVED;
 
+                    // Add index to the served sample to the Room holding it
+                    interior.Rooms[newDoor.RoomA.Key].AddReservedSample(newDoor.RoomA.Value);
+                    interior.Rooms[newDoor.RoomB.Key].AddReservedSample(newDoor.RoomB.Value);
+
                     // Remove both rooms from each others ConnectingWalls Dictionary
                     interior.Rooms[roomIndex].RemoveNeighbourForRoom(nextIndex);
                     interior.Rooms[nextIndex].RemoveNeighbourForRoom(roomIndex);
 
                     // Add reference to door
                     interior.Rooms[roomIndex].AddDoor(nextIndex, wallIndex);
-                    interior.Rooms[roomIndex].AddDoor(roomIndex, wallIndex);
+                    interior.Rooms[nextIndex].AddDoor(roomIndex, wallIndex);
                 }
             }
         }
