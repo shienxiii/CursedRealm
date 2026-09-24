@@ -1,0 +1,280 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2516791559484826259
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 144535039985156253}
+  - component: {fileID: 3047008087806383510}
+  - component: {fileID: 4906494016395526968}
+  m_Layer: 0
+  m_Name: InteriorB
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &144535039985156253
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2516791559484826259}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 54}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3047008087806383510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2516791559484826259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab5c7d4c32e743048dfca98e2d5914f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Splines::UnityEngine.Splines.SplineContainer
+  m_Spline:
+    m_EditModeType: 1
+    m_Knots: []
+    m_MetaData: []
+    m_Closed: 0
+    m_IntData:
+      m_Data: []
+    m_FloatData:
+      m_Data: []
+    m_Float4Data:
+      m_Data: []
+    m_ObjectData:
+      m_Data: []
+  m_Splines:
+  - m_EditModeType: 1
+    m_Knots:
+    - Position:
+        x: -25.8
+        y: 0
+        z: -0.5
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+    - Position:
+        x: -25.8
+        y: 0
+        z: 20.8
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+    - Position:
+        x: 19.7
+        y: 0
+        z: 20.8
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+    - Position:
+        x: 19.75
+        y: 0
+        z: -24.75
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: 0
+          y: 1
+          z: 0
+          w: 0
+    - Position:
+        x: -14.4
+        y: 0
+        z: -24.5
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: 0
+          y: -0.70710677
+          z: -0
+          w: 0.70710677
+    - Position:
+        x: -14.4
+        y: 0
+        z: -12.4
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: -0
+          y: 0.00020920981
+          z: -0
+          w: 1
+    - Position:
+        x: 14.9
+        y: 0
+        z: -12.400002
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: -0
+          y: 0.45821127
+          z: -0
+          w: 0.8888433
+    - Position:
+        x: 14.9
+        y: 0
+        z: -0.5
+      TangentIn:
+        x: 0
+        y: 0
+        z: 0
+      TangentOut:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        value:
+          x: 0
+          y: -0.70710677
+          z: -0
+          w: 0.70710677
+    m_MetaData:
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    - Mode: 1
+      Tension: 0.5
+    m_Closed: 1
+    m_IntData:
+      m_Data: []
+    m_FloatData:
+      m_Data: []
+    m_Float4Data:
+      m_Data: []
+    m_ObjectData:
+      m_Data: []
+  m_Knots:
+    m_KnotsLink: []
+--- !u!114 &4906494016395526968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2516791559484826259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e6b452712f6e154b9747f2cb03a5cdb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Interior
+  _rooms:
+  - debugColor: {r: 0.15294118, g: 0.61960787, b: 0.21960784, a: 1}
+  - debugColor: {r: 0.91764706, g: 0.18039216, b: 0.56078434, a: 1}
+  - debugColor: {r: 0.44313726, g: 0.85490197, b: 0.12156863, a: 1}
+  - debugColor: {r: 0.36862746, g: 0.9098039, b: 0.03137255, a: 1}
+  - debugColor: {r: 0.77254903, g: 0.45882353, b: 0.59607846, a: 1}
+  - debugColor: {r: 0.21960784, g: 0.23529412, b: 0.78039217, a: 1}
+  - debugColor: {r: 0.95686275, g: 0.22745098, b: 0.023529412, a: 1}
+  - debugColor: {r: 0.09803922, g: 0.5254902, b: 0.6862745, a: 1}
+  - debugColor: {r: 0.6392157, g: 0.5254902, b: 0.8117647, a: 1}
+  - debugColor: {r: 0.18039216, g: 0.6666667, b: 0.44313726, a: 1}
+  - debugColor: {r: 0.73333335, g: 0.92941177, b: 0.22352941, a: 1}
+  - debugColor: {r: 0.3764706, g: 0.7764706, b: 0.7137255, a: 1}
+  - debugColor: {r: 0.05882353, g: 0.80784315, b: 0.5529412, a: 1}
+  - debugColor: {r: 0.14509805, g: 0.28235295, b: 0.3647059, a: 1}
+  - debugColor: {r: 0.17254902, g: 0.28235295, b: 0.43529412, a: 1}
+  - debugColor: {r: 0.13333334, g: 0.69803923, b: 0.6666667, a: 1}
+  - debugColor: {r: 0.1882353, g: 0.3529412, b: 0.52156866, a: 1}
+  - debugColor: {r: 0.43529412, g: 0.2, b: 0.07450981, a: 1}
+  - debugColor: {r: 0.38039216, g: 0.047058824, b: 0.11764706, a: 1}
+  - debugColor: {r: 0.38431373, g: 0.5058824, b: 0.83137256, a: 1}
+  - debugColor: {r: 0.7529412, g: 0.3019608, b: 0.0627451, a: 1}
+  - debugColor: {r: 0.38039216, g: 0.09411765, b: 0.05490196, a: 1}
+  - debugColor: {r: 0.47058824, g: 0.41568628, b: 0.13725491, a: 1}
+  - debugColor: {r: 0.9372549, g: 0.34901962, b: 0.5254902, a: 1}
+  - debugColor: {r: 0.5647059, g: 0.34117648, b: 0.039215688, a: 1}
+  - debugColor: {r: 0.7529412, g: 0.93333334, b: 0.3882353, a: 1}
+  _start: {x: -25.8, y: 0, z: 29.25}
+  _end: {x: 19.75, y: 0, z: 74.8}
+  _drawDebug: 1
+  _splineToDebug: 0
+  applySeed: 0
+  roomSeed: 2133984097

@@ -58,7 +58,7 @@ namespace ProceduralInterior
             if (_areas == null)
                 _areas = GetComponent<SplineContainer>();
 
-            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
 
             if (!settings || _areas.Splines.Count == 0 || splineIndex >= _areas.Splines.Count) return;
 
@@ -121,7 +121,7 @@ namespace ProceduralInterior
 
         public Vector3 GridPointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
         {
-            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
 
             if (!settings) return Vector3.zero;
 
@@ -150,7 +150,7 @@ namespace ProceduralInterior
             if (_areas == null)
                 _areas = GetComponent<SplineContainer>();
 
-            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
 
             if (!settings || (_grid?.Length ?? 0) == 0 || !_drawDebug || _areas.Splines.Count == 0 || _splineToDebug >= _areas.Splines.Count) return;
 

@@ -12,6 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 195d33cfcd3d16d418a745cc7b539edc, type: 3}
   m_Name: ProceduralInteriorSettings
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralInteriorSettings
+  _interiorPrefabs:
+  - {fileID: 6208365809100469107, guid: 2631848d382039c409341b755b7ed2f4, type: 3}
+  - {fileID: 4906494016395526968, guid: a7f8f75cdbc9b4a4c99d92b188daf9e1, type: 3}
+  _defaultGround:
+    _prefab: {fileID: 0}
+    _dimension: {x: 0, y: 0, z: 0}
+    _material: {fileID: 0}
+  _defaultWall:
+    _prefab: {fileID: 0}
+    _dimension: {x: 0, y: 0, z: 0}
+    _material: {fileID: 0}
+  _defaultCeiling:
+    _prefab: {fileID: 0}
+    _dimension: {x: 0, y: 0, z: 0}
+    _material: {fileID: 0}
   _sampleDimension: {x: 2, y: 3}
   _minRoomCount: 5
   _maxRoomCount: 10

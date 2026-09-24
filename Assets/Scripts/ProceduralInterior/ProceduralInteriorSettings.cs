@@ -8,10 +8,10 @@ namespace ProceduralInterior
     public class ProceduralInteriorSettings : ScriptableObject
     {
         [Header("Assets")]
-        private List<Interior> _interiorPrefabs;
-        private RoomPrefab _defaultGround;
-        private RoomPrefab _defaultWall;
-        private RoomPrefab _defaultCeiling;
+        [SerializeField]private List<Interior> _interiorPrefabs;
+        [SerializeField]private RoomPrefab _defaultGround;
+        [SerializeField]private RoomPrefab _defaultWall;
+        [SerializeField]private RoomPrefab _defaultCeiling;
 
         [Header("Sampler Settings")]
         /// <summary>
@@ -19,13 +19,17 @@ namespace ProceduralInterior
         /// x = Horizontal dimension
         /// y = Vertical dimension
         /// </summary>
-        [SerializeField]
-        private Vector2 _sampleDimension = new Vector2(2.0f, 3.0f);
+        [SerializeField] private Vector2 _sampleDimension = new Vector2(2.0f, 3.0f);
         [SerializeField] private int _minRoomCount = 5;
         [SerializeField] private int _maxRoomCount = 10;
         [SerializeField] private int _offset = 5;
         [SerializeField] private int _minSamplesPerRoom = 4;
 
+        public List<Interior> InteriorPrefabs => _interiorPrefabs;
+        public RoomPrefab DefaultGround => _defaultGround;
+        public RoomPrefab DefaultWall => _defaultWall;
+        public RoomPrefab DefaultCeiling => _defaultCeiling;
+        
         public Vector2 SampleDimension => _sampleDimension;
         public int MinRoomCount => _minRoomCount;
         public int MaxRoomCount => _maxRoomCount;
@@ -84,6 +88,11 @@ namespace ProceduralInterior
                 guiHandler = _ =>
                 {
                     SerializedObject serializedObject = ProceduralInteriorSettings.GetSerializedSettings();
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_interiorPrefabs"), new GUIContent("Interior Prefabs"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultGround"), new GUIContent("Default Ground"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultWall"), new GUIContent("Default Wall"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultCeiling"), new GUIContent("Default Ceiling"));
+                    
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_sampleDimension"), new GUIContent("Sample Dimension"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_minRoomCount"), new GUIContent("Min Room Count"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_maxRoomCount"), new GUIContent("Max Room Count"));

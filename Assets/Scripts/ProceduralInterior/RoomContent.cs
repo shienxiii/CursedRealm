@@ -14,7 +14,7 @@ public class RoomContent : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+        ProceduralInteriorSettings settings = InteriorManager.Settings;
         if (settings == null) return;
 
         Vector3 sampleSize = new Vector3(settings.SampleDimension.x - 0.1f, 0.0f, settings.SampleDimension.x - 0.1f);

@@ -16,7 +16,7 @@ namespace ProceduralInterior.FunctionLib
         /// <param name="validSamples"></param>
         public static void GenerateRooms(Interior interior, List<Vector2Int> validSamples)
         {
-            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
 
             if (interior == null || validSamples == null ||
                 settings == null || (interior.Grid?.Length ?? 0) == 0
@@ -193,7 +193,7 @@ namespace ProceduralInterior.FunctionLib
         /// <param name="interior">the Interior to sample</param>
         public static void SampleWallAndRoomConnections(Interior interior)
         {
-            ProceduralInteriorSettings settings = ProceduralInteriorSettings.TryGetSettings();
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
 
             if (interior == null || interior.Grid == null || settings == null)
                 return;
