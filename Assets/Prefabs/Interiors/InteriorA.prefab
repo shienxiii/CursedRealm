@@ -245,44 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e6b452712f6e154b9747f2cb03a5cdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralInterior.Interior
-  _rooms:
-  - debugColor: {r: 0.003921569, g: 0.31764707, b: 0.07450981, a: 1}
-  - debugColor: {r: 0.7176471, g: 0.3529412, b: 0.42352942, a: 1}
-  - debugColor: {r: 0.07450981, g: 0.85490197, b: 0.39215687, a: 1}
-  - debugColor: {r: 0.14901961, g: 0.39607844, b: 0.7882353, a: 1}
-  - debugColor: {r: 0.0627451, g: 0.078431375, b: 0.39215687, a: 1}
-  - debugColor: {r: 0.4509804, g: 0.47843137, b: 0.5647059, a: 1}
-  - debugColor: {r: 0.7019608, g: 0.6313726, b: 0.20392157, a: 1}
-  - debugColor: {r: 0.8, g: 0.1254902, b: 0.21176471, a: 1}
-  - debugColor: {r: 0.8745098, g: 0.49411765, b: 0.69803923, a: 1}
-  - debugColor: {r: 0.99607843, g: 0.21568628, b: 0.30588236, a: 1}
-  - debugColor: {r: 0.7607843, g: 0.44313726, b: 0.5568628, a: 1}
-  - debugColor: {r: 0.39215687, g: 0.27450982, b: 0.4, a: 1}
-  - debugColor: {r: 0.83137256, g: 0.6745098, b: 0.95686275, a: 1}
-  - debugColor: {r: 0.14509805, g: 0.15294118, b: 0.6, a: 1}
-  - debugColor: {r: 0.31764707, g: 0.65882355, b: 0.6666667, a: 1}
-  - debugColor: {r: 0.4745098, g: 0.27058825, b: 0.8745098, a: 1}
-  - debugColor: {r: 0.019607844, g: 0.99215686, b: 0.79607844, a: 1}
-  - debugColor: {r: 0.45490196, g: 0.63529414, b: 0.654902, a: 1}
-  - debugColor: {r: 0.6313726, g: 0.8509804, b: 0.06666667, a: 1}
-  - debugColor: {r: 0.3019608, g: 0.44705883, b: 0.9843137, a: 1}
-  - debugColor: {r: 0.29803923, g: 0.9490196, b: 0.36078432, a: 1}
-  - debugColor: {r: 0.10980392, g: 0.015686275, b: 0.25490198, a: 1}
-  - debugColor: {r: 0.25882354, g: 0.7490196, b: 0.3764706, a: 1}
-  - debugColor: {r: 0.95686275, g: 0.83137256, b: 0.4745098, a: 1}
-  - debugColor: {r: 0.65882355, g: 0.85882354, b: 0.38039216, a: 1}
-  - debugColor: {r: 0.5529412, g: 0.10980392, b: 0.7607843, a: 1}
-  - debugColor: {r: 0.09803922, g: 0.105882354, b: 0.6313726, a: 1}
-  - debugColor: {r: 0.05490196, g: 0.11372549, b: 0.95686275, a: 1}
-  - debugColor: {r: 0.2784314, g: 0.60784316, b: 0.78431374, a: 1}
-  - debugColor: {r: 0.7019608, g: 0.22352941, b: 0.29803923, a: 1}
-  - debugColor: {r: 0.3372549, g: 0.03529412, b: 0.08235294, a: 1}
-  - debugColor: {r: 0.31764707, g: 0.88235295, b: 0.09411765, a: 1}
-  - debugColor: {r: 0.65882355, g: 0.9137255, b: 0.20392157, a: 1}
-  - debugColor: {r: 0.7607843, g: 0.65882355, b: 0.2627451, a: 1}
-  _start: {x: -37.7, y: 0, z: -43.28}
-  _end: {x: 19.75, y: 0, z: 20.8}
   _drawDebug: 1
   _splineToDebug: 0
-  applySeed: 1
-  roomSeed: 241318546
+  applySeed: 0
+  debugSeed: 5000
