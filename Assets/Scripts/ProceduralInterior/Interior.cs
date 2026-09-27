@@ -182,6 +182,24 @@ namespace ProceduralInterior
                         Gizmos.DrawCube(center, size);
                     }
 
+                    // want to visualize all reserved points
+                    foreach (Vector2Int reserved in room.Reserved)
+                    {
+                        if (_grid[reserved.x, reserved.y].State != SampleState.RESERVED)
+                            Debug.Log("Unreserved point found");
+                            
+                        Sample sample = _grid[reserved.x, reserved.y];
+
+                        Vector3 point = GridPointToWorldPoint(reserved.x, reserved.y);
+                        Vector3 size = new Vector3(settings.SampleDimension.x - 0.2f, 0.2f, settings.SampleDimension.x - 0.2f);
+
+                        Gizmos.color = Color.green;
+                        Gizmos.DrawCube(point, size);
+                        Gizmos.color = room.debugColor;
+                        Gizmos.DrawSphere(point, 0.4f);
+
+                    }
+
                     List<Wall> walls = room.Walls;
                     foreach (Wall wall in walls)
                     {
