@@ -54,7 +54,7 @@ namespace ProceduralInterior
 
             Interior newInterior = SpawnInterior(prefab, Vector3.zero);
             newInterior.SeedInterior(_random.Next());
-            newInterior.GenerateInterior(0);
+            newInterior.SampleInterior(0);
 
         }
 

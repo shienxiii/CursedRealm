@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProceduralInterior.Types;
 using ProceduralInterior.FunctionLib;
+using Unity.VisualScripting;
 using UnityEngine.Serialization;
 using UnityEngine.Splines;
 
@@ -20,6 +21,8 @@ namespace ProceduralInterior
         private List<Room> _rooms = new List<Room>();
         private List<WallSample> _wallSamples = new List<WallSample>();
         private System.Random _interiorRandom = null;
+
+        private List<GameObject> _structures = new List<GameObject>();
         
         /*** PUBLIC PROPERTIES ***/
         public Sample[,] Grid => _grid;
@@ -41,7 +44,7 @@ namespace ProceduralInterior
                     SeedInterior(debugSeed);
                 else
                     SeedInterior(UnityEngine.Random.Range(0, 1000000));
-                GenerateInterior(_splineToDebug);
+                SampleInterior(_splineToDebug);
             }
         #endif
         
@@ -50,7 +53,7 @@ namespace ProceduralInterior
         /// </summary>
         /// <param name="splineIndex">index of the spline to use, defaults to 0</param>
         /// <returns>List of indexes of valid samples on the grid</returns>
-        public void GenerateInterior(int splineIndex = 0)
+        public void SampleInterior(int splineIndex = 0)
         {
             // Should only be called after seeding
             if (_interiorRandom == null) return;
@@ -62,6 +65,9 @@ namespace ProceduralInterior
             
             if (!settings || _areas.Splines.Count == 0 || splineIndex < 0 || splineIndex >= _areas.Splines.Count) return;
 
+            // clear all existing structures if necessary
+            ClearStructures();
+            
             // clear all room and wall information
             _rooms.Clear();
             _wallSamples.Clear();
@@ -116,9 +122,62 @@ namespace ProceduralInterior
             for (int i = 0; i < _rooms.Count; i++)
                 WallGenerator.GenerateWallForRoom(this, i);
             
+            GenerateInterior();
+            
             #if UNITY_EDITOR
                 _splineToDebug = splineIndex;
             #endif
+            
+        }
+
+        private void ClearStructures()
+        {
+            foreach (GameObject structure in _structures)
+            {
+                #if UNITY_EDITOR
+                    DestroyImmediate(structure);
+                #else
+                    Destroy(structure);
+                #endif
+            }
+            
+            _structures.Clear();
+        }
+
+        public void GenerateInterior()
+        {
+            if (_grid == null || _grid.GetLength(0) == 0) return;
+
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
+
+            if (settings == null) return;
+            
+            RoomPrefab wallPrefab = settings.DefaultWall;
+
+            // Go through each rooms
+            foreach (Room room in _rooms)
+            {
+                if (wallPrefab.Prefab == null) break;
+                List<Wall> walls = room.Walls;
+
+                foreach (Wall wall in walls)
+                {
+                    if(wall.IsDoor) continue;
+                    // Assuming wall prefab is facing z-forward
+                    
+                    // figure out the wall rotation
+                    Quaternion rotation = Quaternion.LookRotation(wall.Normal, Vector3.up);
+                    
+                    // figure out the required scale on the x-axis
+                    float lengthScale = wall.GetLength() / wallPrefab.Dimension.x;
+
+
+                    GameObject newWall = Instantiate(wallPrefab.Prefab, wall.GetCenter(), rotation);
+                    newWall.transform.localScale = new Vector3(lengthScale, 1.0f, 1.0f);
+                    newWall.transform.parent = this.gameObject.transform;
+                    _structures.Add(newWall);
+                }
+            }
             
         }
         
@@ -182,25 +241,7 @@ namespace ProceduralInterior
                         Gizmos.DrawCube(center, size);
                     }
 
-                    // want to visualize all reserved points
-                    foreach (Vector2Int reserved in room.Reserved)
-                    {
-                        if (_grid[reserved.x, reserved.y].State != SampleState.RESERVED)
-                            Debug.Log("Unreserved point found");
-                            
-                        Sample sample = _grid[reserved.x, reserved.y];
-
-                        Vector3 point = GridPointToWorldPoint(reserved.x, reserved.y);
-                        Vector3 size = new Vector3(settings.SampleDimension.x - 0.2f, 0.2f, settings.SampleDimension.x - 0.2f);
-
-                        Gizmos.color = Color.green;
-                        Gizmos.DrawCube(point, size);
-                        Gizmos.color = room.debugColor;
-                        Gizmos.DrawSphere(point, 0.4f);
-
-                    }
-
-                    List<Wall> walls = room.Walls;
+                    /*List<Wall> walls = room.Walls;
                     foreach (Wall wall in walls)
                     {
                         Gizmos.color = wall.IsDoor ? Color.green : Color.white;
@@ -209,16 +250,39 @@ namespace ProceduralInterior
                         Vector3 normalized = size.normalized;
 
                         float x = Mathf.Abs(size.x) - (normalized.x * 0.075f) + (normalized.z * 0.05f);
-                        float y = 1.0f;
+                        float y = 3.0f;
                         float z = Mathf.Abs(size.z) - (normalized.z * 0.075f) + (normalized.x * 0.05f);
 
                         Vector3 center = wall.Start + wall.End;
                         center.x /= 2;
-                        center.y += 0.5f;
+                        center.y += 1.5f;
                         center.z /= 2;
                         center += (wall.Normal * 0.1f);
 
                         Gizmos.DrawCube(center, new Vector3(x, y, z));
+                    }*/
+                }
+                
+                for (int x = 0; x < _grid.GetLength(0); x++)
+                {
+                    for(int y = 0; y < _grid.GetLength(1); y++)
+                    {
+                        Sample sample = _grid[x, y];
+                        if (sample == null) continue;
+
+                        Room room = _rooms[sample.RoomIndex];
+                        //
+
+                        if (sample.State == SampleState.RESERVED)
+                        {
+                            Vector3 point = GridPointToWorldPoint(x, y);
+                            Vector3 size = new Vector3(settings.SampleDimension.x - 0.2f, 0.2f, settings.SampleDimension.x - 0.2f);
+
+                            Gizmos.color = Color.green;
+                            Gizmos.DrawCube(point, size);
+                            Gizmos.color = room.debugColor;
+                            Gizmos.DrawSphere(point, 0.4f);
+                        }
                     }
                 }
             }

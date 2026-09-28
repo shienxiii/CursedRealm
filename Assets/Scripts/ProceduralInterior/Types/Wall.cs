@@ -36,21 +36,48 @@ namespace ProceduralInterior.Types
                 _end = inStart;
             }
 
+            _normal = inNormal;
+            _isDoor = isDoor;
+            
+            
+            // to ensure we can sort the wall based on start and end point,
+            // inverse _start and _end if normal points to left or forward
+            if (CustomVectorMath.EqualWithTolerance(_normal, Vector3.forward) ||
+                CustomVectorMath.EqualWithTolerance(_normal, Vector3.left))
+                (_start, _end) = (_end, _start);
+
+
             _direction = _end - _start;
             _direction.Normalize();
-
-            _normal = inNormal;
-
-            _isDoor = isDoor;
         }
 
         public Wall(in WallSample inWallSample, Vector3 inNormal)
         {
             _start = inWallSample.Start;
             _end = inWallSample.End;
-            _direction = inWallSample.Direction;
             _normal = inNormal;
             _isDoor = inWallSample.IsDoor;
+            
+            // to ensure we can sort the wall based on start and end point,
+            // inverse _start and _end if normal points to left or forward
+            if (CustomVectorMath.EqualWithTolerance(_normal, Vector3.forward) ||
+                CustomVectorMath.EqualWithTolerance(_normal, Vector3.left))
+                (_start, _end) = (_end, _start);
+            
+            _direction = _end - _start;
+            _direction.Normalize();
+        }
+
+        // Size length of wall from start to end
+        public float GetLength()
+        {
+            return (End - Start).magnitude;
+        }
+
+        // Center point of the wall, with Y-axis at floor level
+        public Vector3 GetCenter()
+        {
+            return (Start + End) / 2;
         }
     }
 }

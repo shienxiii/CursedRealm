@@ -93,6 +93,32 @@ namespace ProceduralInterior.FunctionLib
             }
 
             inRoom.Walls.Add(new Wall(walls[start].A, walls[end].B, inWallGroup.Normal, false));
+            
+            // Final sort on the walls
+            SortWalls(inRoom.Walls);
+        }
+
+        // Sort the wall to ensure a continuous connections between the walls endpoints
+        // Will be needed to calculate and modify wall length later
+        private static void SortWalls(List<Wall> walls)
+        {
+            if (walls == null || walls.Count < 2) return;
+
+            for (int u = 1; u < walls.Count; u++)
+            {
+                Wall currentWall = walls[u - 1];
+                Wall nextWall = walls[u];
+                // if already sorted, continue
+                if(CustomVectorMath.EqualWithTolerance(currentWall.End, nextWall.Start)) continue;
+                
+                for (int v = u + 1; v < walls.Count; v++)
+                {
+                    if(!CustomVectorMath.EqualWithTolerance(currentWall.End, walls[v].Start)) continue;
+
+                    (walls[u], walls[v]) = (walls[v], walls[u]);
+                    break;
+                }
+            }
         }
 
         /// <summary>

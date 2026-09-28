@@ -20,8 +20,8 @@ MonoBehaviour:
     _dimension: {x: 0, y: 0, z: 0}
     _material: {fileID: 0}
   _defaultWall:
-    _prefab: {fileID: 0}
-    _dimension: {x: 0, y: 0, z: 0}
+    _prefab: {fileID: 1847223854238304986, guid: 4c46a9b313cb2874dbff056c01b9c387, type: 3}
+    _dimension: {x: 2, y: 3, z: 2}
     _material: {fileID: 0}
   _defaultCeiling:
     _prefab: {fileID: 0}
