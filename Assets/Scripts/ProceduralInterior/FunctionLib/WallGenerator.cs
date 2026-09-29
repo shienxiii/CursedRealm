@@ -95,30 +95,74 @@ namespace ProceduralInterior.FunctionLib
             inRoom.Walls.Add(new Wall(walls[start].A, walls[end].B, inWallGroup.Normal, false));
             
             // Final sort on the walls
-            SortWalls(inRoom.Walls);
+            SortWallsAndOffsetEndpoints(inRoom.Walls);
         }
 
-        // Sort the wall to ensure a continuous connections between the walls endpoints
-        // Will be needed to calculate and modify wall length later
-        private static void SortWalls(List<Wall> walls)
+        /// <summary>
+        /// Sort the wall to ensure a continuous connections between the walls
+        /// endpoints and offset the endpoints to ensure the walls are connected
+        /// </summary>
+        /// <param name="walls">list of walls to sort</param>
+        private static void SortWallsAndOffsetEndpoints(List<Wall> walls)
         {
-            if (walls == null || walls.Count < 2) return;
+            ProceduralInteriorSettings settings = InteriorManager.Settings;
+            
+            if (!settings || walls == null || walls.Count < 2) return;
 
-            for (int u = 1; u < walls.Count; u++)
+            for (int currentIndex = 0; currentIndex < walls.Count; currentIndex++)
             {
-                Wall currentWall = walls[u - 1];
-                Wall nextWall = walls[u];
-                // if already sorted, continue
-                if(CustomVectorMath.EqualWithTolerance(currentWall.End, nextWall.Start)) continue;
-                
-                for (int v = u + 1; v < walls.Count; v++)
-                {
-                    if(!CustomVectorMath.EqualWithTolerance(currentWall.End, walls[v].Start)) continue;
+                int nextIndex = (currentIndex + 1) % walls.Count;
+                int swapIndex = FindNextConnectedWall(walls, currentIndex, nextIndex);
 
-                    (walls[u], walls[v]) = (walls[v], walls[u]);
-                    break;
-                }
+                // return as something else had gone wrong if we get -1 at this point
+                if (swapIndex == -1) return;
+                
+                if (swapIndex != nextIndex)
+                    (walls[nextIndex], walls[swapIndex]) = (walls[swapIndex], walls[nextIndex]);
             }
+            
+            // Now that the wall is sorted, we want to apply the offsets
+            if(!settings.OffsetWallEndToConnection) return;
+            
+            for (int u = 0; u < walls.Count; u++)
+            {
+                int v = (u + 1) % walls.Count;
+                
+                if(!settings.OffsetWallEndToConnection) continue;
+                
+                Wall current = walls[u];
+                Wall next = walls[v];
+
+                if(CustomVectorMath.EqualWithTolerance(current.Normal, next.Normal)) continue;
+                
+                current.OffsetEnd(next.Normal, settings.OffsetLength);
+                next.OffsetStart(current.Normal, settings.OffsetLength);
+
+                walls[u] = current;
+                walls[v] = next;
+            }
+        }
+
+        /// <summary>
+        /// Get the index of the wall with a Start point that matches
+        /// the End point of the Wall pointed by the provided index 
+        /// </summary>
+        /// <param name="walls">the list of walls</param>
+        /// <param name="index">index of the wall to be tested against</param>
+        /// <param name="nextIndex">(index + 1) % walls.Count</param>
+        /// <returns></returns>
+        private static int FindNextConnectedWall(List<Wall> walls, int index, int nextIndex)
+        {
+            Wall current = walls[index];
+
+            for (int i = nextIndex; i < walls.Count; i++)
+            {
+                if(!CustomVectorMath.EqualWithTolerance(current.End, walls[i].Start)) continue;
+
+                return i;
+            }
+
+            return -1;
         }
 
         /// <summary>

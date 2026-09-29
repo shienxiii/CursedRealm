@@ -68,6 +68,16 @@ namespace ProceduralInterior.Types
             _direction.Normalize();
         }
 
+        public void OffsetStart(Vector3 direction, float distance)
+        {
+            _start += (direction * distance);
+        }
+        
+        public void OffsetEnd(Vector3 direction, float distance)
+        {
+            _end += (direction * distance);
+        }
+        
         // Size length of wall from start to end
         public float GetLength()
         {

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 186033346999968624}
   m_Layer: 0
-  m_Name: SampleWall
+  m_Name: SampleDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -99,7 +99,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ccb392381ff52c24ba78c4f634bf90f9, type: 2}
+  - {fileID: 2100000, guid: fbb4e4c4131a39a479aa6206f76e8413, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

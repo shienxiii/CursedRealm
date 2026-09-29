@@ -18,12 +18,12 @@ namespace ProceduralInterior.FunctionLib
         {
             ProceduralInteriorSettings settings = InteriorManager.Settings;
 
-            if (interior == null || validSamples == null ||
-                settings == null || (interior.Grid?.Length ?? 0) == 0
+            if (!interior || validSamples == null ||
+                !settings || (interior.Grid?.Length ?? 0) == 0
                 || validSamples.Count == 0) return;
 
             int roomCount = interior.InteriorRandom.Next(settings.MinRoomCount, settings.MaxRoomCount + 1);
-            int roomSizeOffset = Mathf.Abs(settings.Offset);
+            int roomSizeOffset = Mathf.Abs(settings.RoomSizeOffset);
 
             // We want to cache the room samples before creating the Room objects
             List<List<Vector2Int>> roomCache = new List<List<Vector2Int>>();
@@ -195,7 +195,7 @@ namespace ProceduralInterior.FunctionLib
         {
             ProceduralInteriorSettings settings = InteriorManager.Settings;
 
-            if (interior == null || interior.Grid == null || settings == null)
+            if (!interior || interior.Grid == null || !settings)
                 return;
 
             int width = interior.Grid.GetLength(0);

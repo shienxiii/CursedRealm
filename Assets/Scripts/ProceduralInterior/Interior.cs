@@ -40,10 +40,10 @@ namespace ProceduralInterior
             [ContextMenu("Debug Gen")]
             public void DebugGenerate()
             {
-                if (applySeed)
-                    SeedInterior(debugSeed);
-                else
-                    SeedInterior(UnityEngine.Random.Range(0, 1000000));
+                if (!applySeed)
+                    debugSeed = UnityEngine.Random.Range(0, 1000000);
+
+                SeedInterior(debugSeed);
                 SampleInterior(_splineToDebug);
             }
         #endif
@@ -122,7 +122,7 @@ namespace ProceduralInterior
             for (int i = 0; i < _rooms.Count; i++)
                 WallGenerator.GenerateWallForRoom(this, i);
             
-            GenerateInterior();
+            SpawnInterior();
             
             #if UNITY_EDITOR
                 _splineToDebug = splineIndex;
@@ -144,35 +144,33 @@ namespace ProceduralInterior
             _structures.Clear();
         }
 
-        public void GenerateInterior()
+        public void SpawnInterior()
         {
             if (_grid == null || _grid.GetLength(0) == 0) return;
 
             ProceduralInteriorSettings settings = InteriorManager.Settings;
 
-            if (settings == null) return;
+            if (!settings) return;
             
-            RoomPrefab wallPrefab = settings.DefaultWall;
-
+            if (!settings.DefaultWall.Prefab || !settings.DefaultDoorWall.Prefab) return;
             // Go through each rooms
             foreach (Room room in _rooms)
             {
-                if (wallPrefab.Prefab == null) break;
+                
                 List<Wall> walls = room.Walls;
 
                 foreach (Wall wall in walls)
                 {
-                    if(wall.IsDoor) continue;
-                    // Assuming wall prefab is facing z-forward
+                    RoomPrefab prefab = wall.IsDoor ? settings.DefaultDoorWall : settings.DefaultWall;
                     
+                    // Assuming wall prefab is facing z-forward
                     // figure out the wall rotation
                     Quaternion rotation = Quaternion.LookRotation(wall.Normal, Vector3.up);
                     
                     // figure out the required scale on the x-axis
-                    float lengthScale = wall.GetLength() / wallPrefab.Dimension.x;
+                    float lengthScale = wall.GetLength() / prefab.Dimension.x;
 
-
-                    GameObject newWall = Instantiate(wallPrefab.Prefab, wall.GetCenter(), rotation);
+                    GameObject newWall = Instantiate(prefab.Prefab, wall.GetCenter(), rotation);
                     newWall.transform.localScale = new Vector3(lengthScale, 1.0f, 1.0f);
                     newWall.transform.parent = this.gameObject.transform;
                     _structures.Add(newWall);

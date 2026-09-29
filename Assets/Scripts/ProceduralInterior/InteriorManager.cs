@@ -42,7 +42,7 @@ namespace ProceduralInterior
         [ContextMenu("Spawn Level")]
         public void SpawnLevel()
         {
-            if (Settings == null || _random == null) return;
+            if (!Settings || _random == null) return;
 
             List<Interior> prefabs = Settings.InteriorPrefabs;
             if (prefabs == null || prefabs.Count == 0) return;
