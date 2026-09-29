@@ -20,7 +20,7 @@ namespace ProceduralInterior
         /// Each rectangles are a span continuous samples making up this room.
         private List<GridSpan> _spaces = new List<GridSpan>();
 
-        // walls making up this room, values are index to Interior._wallSamples in owning Interior
+        // walls making up this room, values are indexes to Interior._wallSamples in owning Interior
         private List<int> _wallSamples = new List<int>();
 
         // Actual wall information specific to this Room after merging and processing everything in _wallSamples
@@ -28,6 +28,9 @@ namespace ProceduralInterior
 
         private Dictionary<int, int> _doors = new Dictionary<int, int>();
         private List<Vector2Int> _reserved = new List<Vector2Int>();
+        
+        // List of GameObjects making up this Room, mainly the walls, floors and ceiling
+        private List<GameObject> _structures = new List<GameObject>();
 
         public Vector2Int Start => _span.A;
         public Vector2Int End => _span.B;
@@ -127,6 +130,30 @@ namespace ProceduralInterior
         public Vector2Int RoomPointToInteriorPoint(Vector2Int inPoint)
         {
             return inPoint + Start;
+        }
+
+        public void AddStructure(GameObject inStructure)
+        {
+            _structures.Add(inStructure);
+        }
+        
+        public void AddStructures(List<GameObject> inStructures)
+        {
+            _structures.AddRange(inStructures);
+        }
+
+        public void ClearRoomConstructionObject()
+        {
+            foreach (GameObject structure in _structures)
+            {
+                #if UNITY_EDITOR
+                    GameObject.DestroyImmediate(structure);
+                #else
+                    GameObject.Destroy(structure);
+                #endif
+            }
+            
+            _structures.Clear();
         }
     }
 }

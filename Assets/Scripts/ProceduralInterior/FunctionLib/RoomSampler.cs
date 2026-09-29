@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ProceduralInterior.FunctionLib
 {
-    public static class RoomGenerator
+    public static class RoomSampler
     {
         /// <summary>
         /// To be called after an interior grid sample have been initialized and valid samples have been determined.
@@ -187,11 +187,11 @@ namespace ProceduralInterior.FunctionLib
         }
 
         /// <summary>
-        /// Sample an Interior's grid an determine indentify where walls should be placed
-        /// and what room is directly next to each other
+        /// Sample an Interior's grid an determine indentify the borders
+        /// between rooms and what room is directly next to each other
         /// </summary>
         /// <param name="interior">the Interior to sample</param>
-        public static void SampleWallAndRoomConnections(Interior interior)
+        public static void SampleBorder(Interior interior)
         {
             ProceduralInteriorSettings settings = InteriorManager.Settings;
 
@@ -270,15 +270,6 @@ namespace ProceduralInterior.FunctionLib
                     }
                 }
             }
-
-            /*for (int i = 0; i < interior.Rooms.Count; i++)
-            {
-                string message = string.Format($"Room {i} : Connected Rooms {interior.Rooms[i].Neighbours.Count} |");
-                foreach (KeyValuePair<int, List<int>> connection in interior.Rooms[i].Neighbours)
-                    message = string.Format($"{message} [{connection.Key} : {connection.Value.Count} walls]");
-
-                Debug.Log(message);
-            }*/
         }
 
         /// <summary>

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ProceduralInterior.FunctionLib
 {
-    public static class WallGenerator
+    public static class WallSampler
     {
         /// <summary>
         /// Generate a list of Wall for a room based on the WallSample stored in the owning Interior

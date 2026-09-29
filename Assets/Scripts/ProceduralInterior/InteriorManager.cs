@@ -52,22 +52,10 @@ namespace ProceduralInterior
             SamplerHelperFunctions.GetRandomElement(prefabs, _random);
             Interior prefab = prefabs[i];
 
-            Interior newInterior = SpawnInterior(prefab, Vector3.zero);
+            Interior newInterior = InteriorSpawner.SpawnInterior(prefab, _random, Vector3.zero);
             newInterior.SeedInterior(_random.Next());
             newInterior.SampleInterior(0);
-
-        }
-
-        private Interior SpawnInterior(Interior inPrefab, Vector3 inPosition)
-        {
-            if (inPrefab == null || _random == null) return null;
-
-            // apply random 90-degree rotation
-            float yRotate = (_random.Next() % 4) * 90.0f;
-            
-            Interior newInterior = Instantiate(inPrefab, inPosition, Quaternion.Euler(0.0f, yRotate, 0.0f));
-
-            return newInterior;
+            InteriorSpawner.SpawnStructures(newInterior);
         }
 
         public void ReSeed()

@@ -16,8 +16,8 @@ MonoBehaviour:
   - {fileID: 6208365809100469107, guid: 2631848d382039c409341b755b7ed2f4, type: 3}
   - {fileID: 4906494016395526968, guid: a7f8f75cdbc9b4a4c99d92b188daf9e1, type: 3}
   _defaultGround:
-    _prefab: {fileID: 0}
-    _dimension: {x: 0, y: 0, z: 0}
+    _prefab: {fileID: 1847223854238304986, guid: db6df5fd634570d4399c39263c1e2ff1, type: 3}
+    _dimension: {x: 1, y: 1, z: 1}
     _material: {fileID: 0}
   _defaultWall:
     _prefab: {fileID: 1847223854238304986, guid: 4c46a9b313cb2874dbff056c01b9c387, type: 3}

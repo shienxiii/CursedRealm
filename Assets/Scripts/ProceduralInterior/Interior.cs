@@ -22,7 +22,7 @@ namespace ProceduralInterior
         private List<WallSample> _wallSamples = new List<WallSample>();
         private System.Random _interiorRandom = null;
 
-        private List<GameObject> _structures = new List<GameObject>();
+        private List<GameObject> _objects = new List<GameObject>();
         
         /*** PUBLIC PROPERTIES ***/
         public Sample[,] Grid => _grid;
@@ -41,10 +41,11 @@ namespace ProceduralInterior
             public void DebugGenerate()
             {
                 if (!applySeed)
-                    debugSeed = UnityEngine.Random.Range(0, 1000000);
+                    debugSeed = unchecked((int)System.DateTime.Now.Ticks);
 
                 SeedInterior(debugSeed);
                 SampleInterior(_splineToDebug);
+                InteriorSpawner.SpawnStructures(this);
             }
         #endif
         
@@ -55,6 +56,8 @@ namespace ProceduralInterior
         /// <returns>List of indexes of valid samples on the grid</returns>
         public void SampleInterior(int splineIndex = 0)
         {
+            ClearSamples();
+            
             // Should only be called after seeding
             if (_interiorRandom == null) return;
             
@@ -64,13 +67,6 @@ namespace ProceduralInterior
             ProceduralInteriorSettings settings = InteriorManager.Settings;
             
             if (!settings || _areas.Splines.Count == 0 || splineIndex < 0 || splineIndex >= _areas.Splines.Count) return;
-
-            // clear all existing structures if necessary
-            ClearStructures();
-            
-            // clear all room and wall information
-            _rooms.Clear();
-            _wallSamples.Clear();
 
             // Calculate the area that covers the samples
             Spline area = _areas.Splines[splineIndex];
@@ -115,14 +111,12 @@ namespace ProceduralInterior
                 }
             }
             
-            RoomGenerator.GenerateRooms(this, validSamples);
-            RoomGenerator.SampleWallAndRoomConnections(this);
-            RoomGenerator.SampleDoor(this);
+            RoomSampler.GenerateRooms(this, validSamples);
+            RoomSampler.SampleBorder(this);
+            RoomSampler.SampleDoor(this);
 
             for (int i = 0; i < _rooms.Count; i++)
-                WallGenerator.GenerateWallForRoom(this, i);
-            
-            SpawnInterior();
+                WallSampler.GenerateWallForRoom(this, i);
             
             #if UNITY_EDITOR
                 _splineToDebug = splineIndex;
@@ -130,53 +124,9 @@ namespace ProceduralInterior
             
         }
 
-        private void ClearStructures()
+        public Vector3 GridPointToWorldPoint(Vector2Int point, bool bCenterH = true, bool bCenterV = false)
         {
-            foreach (GameObject structure in _structures)
-            {
-                #if UNITY_EDITOR
-                    DestroyImmediate(structure);
-                #else
-                    Destroy(structure);
-                #endif
-            }
-            
-            _structures.Clear();
-        }
-
-        public void SpawnInterior()
-        {
-            if (_grid == null || _grid.GetLength(0) == 0) return;
-
-            ProceduralInteriorSettings settings = InteriorManager.Settings;
-
-            if (!settings) return;
-            
-            if (!settings.DefaultWall.Prefab || !settings.DefaultDoorWall.Prefab) return;
-            // Go through each rooms
-            foreach (Room room in _rooms)
-            {
-                
-                List<Wall> walls = room.Walls;
-
-                foreach (Wall wall in walls)
-                {
-                    RoomPrefab prefab = wall.IsDoor ? settings.DefaultDoorWall : settings.DefaultWall;
-                    
-                    // Assuming wall prefab is facing z-forward
-                    // figure out the wall rotation
-                    Quaternion rotation = Quaternion.LookRotation(wall.Normal, Vector3.up);
-                    
-                    // figure out the required scale on the x-axis
-                    float lengthScale = wall.GetLength() / prefab.Dimension.x;
-
-                    GameObject newWall = Instantiate(prefab.Prefab, wall.GetCenter(), rotation);
-                    newWall.transform.localScale = new Vector3(lengthScale, 1.0f, 1.0f);
-                    newWall.transform.parent = this.gameObject.transform;
-                    _structures.Add(newWall);
-                }
-            }
-            
+            return GridPointToWorldPoint(point.x, point.y, bCenterH, bCenterV);
         }
         
         public Vector3 GridPointToWorldPoint(int x, int z, bool bCenterH = true, bool bCenterV = false)
@@ -209,6 +159,15 @@ namespace ProceduralInterior
             _interiorRandom = new System.Random(inSeed);
         }
 
+        public void ClearSamples()
+        {
+            // clear all room and wall information
+            foreach (Room room in _rooms)
+                room.ClearRoomConstructionObject();
+            _rooms.Clear();
+            _wallSamples.Clear();
+        }
+        
         #if UNITY_EDITOR
             private void OnDrawGizmos()
             {

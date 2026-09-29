@@ -245,7 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e6b452712f6e154b9747f2cb03a5cdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralInterior.Interior
-  _drawDebug: 1
+  _drawDebug: 0
   _splineToDebug: 0
   applySeed: 0
   debugSeed: 5000
