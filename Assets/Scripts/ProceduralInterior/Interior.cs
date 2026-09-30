@@ -19,7 +19,7 @@ namespace ProceduralInterior
         private Vector3Range _span;
         private Sample[,] _grid;
         private List<Room> _rooms = new List<Room>();
-        private List<WallSample> _wallSamples = new List<WallSample>();
+        private List<Border> _borders = new List<Border>();
         private System.Random _interiorRandom = null;
 
         private List<GameObject> _objects = new List<GameObject>();
@@ -27,7 +27,7 @@ namespace ProceduralInterior
         /*** PUBLIC PROPERTIES ***/
         public Sample[,] Grid => _grid;
         public List<Room> Rooms => _rooms;
-        public List<WallSample> WallSamples => _wallSamples;
+        public List<Border> Borders => _borders;
         public System.Random InteriorRandom => _interiorRandom;
 
         #if UNITY_EDITOR
@@ -180,7 +180,7 @@ namespace ProceduralInterior
             foreach (Room room in _rooms)
                 room.ClearRoomConstructionObject();
             _rooms.Clear();
-            _wallSamples.Clear();
+            _borders.Clear();
         }
         
         #if UNITY_EDITOR

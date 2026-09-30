@@ -9,19 +9,19 @@ namespace ProceduralInterior.Types
     /// The values in this class all in the context of the owning Interior
     /// </summary>
     [Serializable]
-    public struct WallSample
+    public struct Border
     {
-        private KeyValuePair<int, Vector2Int> _roomA;
-        private KeyValuePair<int, Vector2Int> _roomB;
+        public KeyValuePair<int, Vector2Int> RoomA;
+        public KeyValuePair<int, Vector2Int> RoomB;
         private Vector3Range _endPoints;
         private Vector3 _direction;
-        // Flag for if this wall is a door
+        // Flag for if this border is a door
         public bool IsDoor;
 
 
         /*** PUBLIC PROPERTIES ***/
-        public KeyValuePair<int, Vector2Int> RoomA => _roomA;
-        public KeyValuePair<int, Vector2Int> RoomB => _roomB;
+        /*public KeyValuePair<int, Vector2Int> RoomA => _roomA;
+        public KeyValuePair<int, Vector2Int> RoomB => _roomB;*/
         // We want to know the sample span
         public Vector3 Start => _endPoints.A;
         public Vector3 End => _endPoints.B;
@@ -30,13 +30,13 @@ namespace ProceduralInterior.Types
         // direction will always be either (1,0,0) or (0,0,1)
         public Vector3 Direction => _direction;
 
-        public WallSample(int inRoomA, int inRoomB,
+        public Border(int inRoomA, int inRoomB,
                     Vector2Int inSampleA, Vector2Int inSampleB,
                     Vector3 inStart, Vector3 inEnd)
         {
             // we want to keep reference both reference even if one of them is -1
-            _roomA = new KeyValuePair<int, Vector2Int>(inRoomA, inSampleA);
-            _roomB = new KeyValuePair<int, Vector2Int>(inRoomB, inSampleB);
+            RoomA = new KeyValuePair<int, Vector2Int>(inRoomA, inSampleA);
+            RoomB = new KeyValuePair<int, Vector2Int>(inRoomB, inSampleB);
 
             // we want Start to hold the lower X or if they're approximately the same, the lower z
             if (inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
@@ -59,14 +59,14 @@ namespace ProceduralInterior.Types
             IsDoor = false;
         }
 
-        public bool Equals(WallSample inWall)
+        public bool Equals(Border inWall)
         {
             return this == inWall;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is WallSample && Equals((WallSample)obj);
+            return obj is Border && Equals((Border)obj);
         }
 
         public override int GetHashCode()
@@ -76,10 +76,10 @@ namespace ProceduralInterior.Types
 
         public override string ToString()
         {
-            return String.Format($"Wall | {_roomA.Key} : {_roomB.Key} | {Start}-{End} | DIR : {Direction}");
+            return String.Format($"Wall | {RoomA.Key} : {RoomB.Key} | {Start}-{End} | DIR : {Direction}");
         }
 
-        public static bool operator ==(WallSample wallA, WallSample wallB)
+        public static bool operator ==(Border wallA, Border wallB)
         {
             // check that the wall span are start and end are approximately the same location
             /*return (CustomVectorMath.EqualWithTolerance(wallA.Start, wallB.Start) && CustomVectorMath.EqualWithTolerance(wallA.End, wallB.End)) ||
@@ -89,7 +89,7 @@ namespace ProceduralInterior.Types
                 (wallA.Start == wallB.End && wallA.End == wallB.Start);
         }
 
-        public static bool operator !=(WallSample wallA, WallSample wallB)
+        public static bool operator !=(Border wallA, Border wallB)
         {
             return !(wallA == wallB);
         }
@@ -101,12 +101,12 @@ namespace ProceduralInterior.Types
         /// <returns></returns>
         public Vector3 GetWallNormal(int inRoomIndex)
         {
-            if (inRoomIndex != _roomA.Key && inRoomIndex != _roomB.Key) return Vector3.zero;
+            if (inRoomIndex != RoomA.Key && inRoomIndex != RoomB.Key) return Vector3.zero;
 
-            Vector3 a = new Vector3(_roomA.Value.x, 0.0f, _roomA.Value.y);
-            Vector3 b = new Vector3(_roomB.Value.x, 0.0f, _roomB.Value.y);
+            Vector3 a = new Vector3(RoomA.Value.x, 0.0f, RoomA.Value.y);
+            Vector3 b = new Vector3(RoomB.Value.x, 0.0f, RoomB.Value.y);
 
-            if (_roomA.Key == inRoomIndex)
+            if (RoomA.Key == inRoomIndex)
                 return (a - b).normalized;
 
             return (b - a).normalized;

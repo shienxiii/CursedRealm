@@ -40,12 +40,12 @@ namespace ProceduralInterior.Types
                 (Start, End) = (End, Start);
         }
 
-        public Wall(in WallSample inWallSample, Vector3 inNormal)
+        public Wall(in Border inBorder, Vector3 inNormal)
         {
-            Start = inWallSample.Start;
-            End = inWallSample.End;
+            Start = inBorder.Start;
+            End = inBorder.End;
             Normal = inNormal;
-            IsDoor = inWallSample.IsDoor;
+            IsDoor = inBorder.IsDoor;
             
             // to ensure we can sort the wall based on start and end point,
             // inverse _start and _end if normal points to left or forward

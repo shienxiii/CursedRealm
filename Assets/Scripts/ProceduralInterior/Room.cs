@@ -103,7 +103,7 @@ namespace ProceduralInterior
             _neighbours.Remove(connectingRoom);
         }
 
-        public void AddWallSample(int wallIndex)
+        public void AddBorder(int wallIndex)
         {
             _wallSamples.Add(wallIndex);
         }

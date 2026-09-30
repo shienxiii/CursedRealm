@@ -19,7 +19,7 @@ namespace ProceduralInterior.FunctionLib
             Room room = inInterior.Rooms[roomIndex];
             if (room == null) return;
 
-            List<WallGroup> wallGroups = SortWallByDirectionAndLinearity(inInterior.WallSamples, roomIndex, room.WallSamples, room.Walls);
+            List<WallGroup> wallGroups = SortBorders(inInterior.Borders, roomIndex, room.WallSamples, room.Walls);
             if (wallGroups == null) return;
 
             foreach (WallGroup wallGroup in wallGroups)
@@ -27,11 +27,13 @@ namespace ProceduralInterior.FunctionLib
         }
 
         /// <summary>
-        /// Sorts out the WallSamples into 
+        /// Sorts out the Borders into WallGroups based on their direction and linearity 
         /// </summary>
-        /// <param name="inSamples"></param>
-        /// <param name="inWallIndexes"></param>
-        private static List<WallGroup> SortWallByDirectionAndLinearity(List<WallSample> inSamples, int inRoomIndex, List<int> inWallIndexes, List<Wall> outDoors)
+        /// <param name="inSamples">Border samples from the owning Interior</param>
+        /// <param name="inRoomIndex">Index of the room we are sorting for</param>
+        /// <param name="inWallIndexes">index of the borders making up the target room we're sorting for</param>
+        /// <param name="outDoors">If a Border sample is marked door, we're taking it our of the sorted list and create the Wall early here</param>
+        private static List<WallGroup> SortBorders(List<Border> inSamples, int inRoomIndex, List<int> inWallIndexes, List<Wall> outDoors)
         {
             if (inSamples == null || inWallIndexes == null || outDoors == null) return null;
 
@@ -39,7 +41,7 @@ namespace ProceduralInterior.FunctionLib
 
             foreach (int wallIndex in inWallIndexes)
             {
-                WallSample sample = inSamples[wallIndex];
+                Border sample = inSamples[wallIndex];
 
                 // if the WallSample is for a door, add to outDooe and move to next
                 if (sample.IsDoor)
@@ -61,6 +63,11 @@ namespace ProceduralInterior.FunctionLib
             return walls;
         }
 
+        /// <summary>
+        /// Merge all continuous walls and create the final Wall
+        /// </summary>
+        /// <param name="inWallGroup">Wall group we're parsing and merging for</param>
+        /// <param name="inRoom">The room to own the created Walls</param>
         private static void MergeWalls(WallGroup inWallGroup, Room inRoom)
         {
             if (inWallGroup == null || inWallGroup.Walls == null || inRoom == null) return;
@@ -94,7 +101,6 @@ namespace ProceduralInterior.FunctionLib
 
             inRoom.Walls.Add(new Wall(walls[start].A, walls[end].B, inWallGroup.Normal, false));
             
-            // Final sort on the walls
             SortWallsAndOffsetEndpoints(inRoom.Walls);
         }
 
@@ -182,13 +188,13 @@ namespace ProceduralInterior.FunctionLib
             public Vector3 Direction => _direction;
             public Vector3 Normal => _normal;
 
-            public WallGroup(WallSample inWallSample, int inRoomIndex)
+            public WallGroup(Border inBorder, int inRoomIndex)
             {
                 _roomIndex = inRoomIndex;
-                _normal = inWallSample.GetWallNormal(_roomIndex);
-                _direction = inWallSample.Direction;
+                _normal = inBorder.GetWallNormal(_roomIndex);
+                _direction = inBorder.Direction;
 
-                Vector3Range firstWall = inWallSample.GetAsVectorRange(); ;
+                Vector3Range firstWall = inBorder.GetAsVectorRange(); ;
 
                 _walls = new() { firstWall };
 
@@ -197,7 +203,7 @@ namespace ProceduralInterior.FunctionLib
                     : firstWall.A.x;
             }
 
-            private bool CanContain(WallSample sample)
+            private bool CanContain(Border sample)
             {
                 if (sample.Direction != _direction)
                     return false;
@@ -213,7 +219,7 @@ namespace ProceduralInterior.FunctionLib
                 return Mathf.Approximately(_linearity, linearity);
             }
 
-            public bool TryAdd(WallSample sample)
+            public bool TryAdd(Border sample)
             {
                 if (!CanContain(sample)) return false;
 

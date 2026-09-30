@@ -201,10 +201,10 @@ namespace ProceduralInterior.FunctionLib
             int width = interior.Grid.GetLength(0);
             int height = interior.Grid.GetLength(1);
 
-            HashSet<WallSample> walls = new HashSet<WallSample>();
+            HashSet<Border> borders = new HashSet<Border>();
 
-            // Test if there is a wall between 2 sample point and add the wall
-            void ParseWall(in Vector3 start, in Vector3 end, in int roomA, in Vector2Int sampleA, in Vector2Int sampleB)
+            // Test if there is a border between 2 sample points and create the border
+            void ParseForBorder(in Vector3 start, in Vector3 end, in int roomA, in Vector2Int sampleA, in Vector2Int sampleB)
             {
                 // test to see if next sample is within spline
                 bool isInside = sampleB.x >= 0 && sampleB.y >= 0 && sampleB.x < width && sampleB.y < height && interior.Grid[sampleB.x, sampleB.y] != null;
@@ -213,30 +213,29 @@ namespace ProceduralInterior.FunctionLib
 
                 if (roomA == roomB) return;
 
-                WallSample newWall = new WallSample(roomA, roomB, new Vector2Int(sampleA.x, sampleA.y), new Vector2Int(sampleB.x, sampleB.y), start, end);
-                if (!walls.Add(newWall)) return;
+                Border newBorder = new Border(roomA, roomB, new Vector2Int(sampleA.x, sampleA.y), new Vector2Int(sampleB.x, sampleB.y), start, end);
+                if (!borders.Add(newBorder)) return;
 
-                interior.WallSamples.Add(newWall);
+                interior.Borders.Add(newBorder);
 
-                int wallIndex = interior.WallSamples.Count - 1;
+                int borderIndex = interior.Borders.Count - 1;
 
                 // add reference to the sample in the rooms
                 if (roomA >= 0)
-                    interior.Rooms[roomA].AddWallSample(wallIndex);
+                    interior.Rooms[roomA].AddBorder(borderIndex);
 
                 if (roomB >= 0)
-                    interior.Rooms[roomB].AddWallSample(wallIndex);
+                    interior.Rooms[roomB].AddBorder(borderIndex);
 
                 // if roomA and roomB are index to actual room, add room connection here
                 if (roomA > -1 && roomB > -1)
                 {
-                    interior.Rooms[roomA].AddNeighbourForRoom(roomB, wallIndex);
-                    interior.Rooms[roomB].AddNeighbourForRoom(roomA, wallIndex);
+                    interior.Rooms[roomA].AddNeighbourForRoom(roomB, borderIndex);
+                    interior.Rooms[roomB].AddNeighbourForRoom(roomA, borderIndex);
                 }
 
             }
-
-            // test from index [-1, -1] to remove the need to test for wall in left or rear direction
+            
             for (int x = 0; x < width; x++)
             {
                 for (int z = 0; z < height; z++)
@@ -249,28 +248,29 @@ namespace ProceduralInterior.FunctionLib
                      *  |      |
                      *  bl-----br
                      */
+                    
                     Vector3 tl = interior.GridPointToWorldPoint(x, z + 1, false);
                     Vector3 br = interior.GridPointToWorldPoint(x + 1, z, false);
                     Vector3 tr = interior.GridPointToWorldPoint(x + 1, z + 1, false);
 
-                    ParseWall(br, tr, roomA, new Vector2Int(x, z), new Vector2Int(x + 1, z));
-                    ParseWall(tl, tr, roomA, new Vector2Int(x, z), new Vector2Int(x, z + 1));
+                    ParseForBorder(br, tr, roomA, new Vector2Int(x, z), new Vector2Int(x + 1, z));
+                    ParseForBorder(tl, tr, roomA, new Vector2Int(x, z), new Vector2Int(x, z + 1));
 
                     if (x == 0 || z == 0)
                     {
                         Vector3 bl = interior.GridPointToWorldPoint(x, z, false);
                         if (x == 0)
-                            ParseWall(bl, tl, roomA, new Vector2Int(x, z), new Vector2Int(x - 1, z));
+                            ParseForBorder(bl, tl, roomA, new Vector2Int(x, z), new Vector2Int(x - 1, z));
 
                         if (z == 0)
-                            ParseWall(bl, br, roomA, new Vector2Int(x, z), new Vector2Int(x, z - 1));
+                            ParseForBorder(bl, br, roomA, new Vector2Int(x, z), new Vector2Int(x, z - 1));
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Test if we can break relationship between 2 rooms
+        /// Test if we can break connection between 2 rooms
         /// </summary>
         /// <param name="inRooms">list holding the rooms</param>
         /// <param name="roomA">index of room 1</param>
@@ -335,18 +335,17 @@ namespace ProceduralInterior.FunctionLib
 
                     if (canBreakPath && !keepPath)
                     {
-                        // Remove both rooms from each others ConnectingWalls Dictionary
                         interior.Rooms[roomIndex].RemoveNeighbourForRoom(nextIndex);
                         interior.Rooms[nextIndex].RemoveNeighbourForRoom(roomIndex);
                         continue;
                     }
 
-                    int wallIndex = SamplerHelperFunctions.GetRandomElement(neighbour[nextIndex], interior.InteriorRandom);
+                    int borderIndex = SamplerHelperFunctions.GetRandomElement(neighbour[nextIndex], interior.InteriorRandom);
 
-                    // flag the selected wall for a door
-                    WallSample newDoor = interior.WallSamples[wallIndex];
+                    // flag the selected border for a door
+                    Border newDoor = interior.Borders[borderIndex];
                     newDoor.IsDoor = true;
-                    interior.WallSamples[wallIndex] = newDoor;
+                    interior.Borders[borderIndex] = newDoor;
 
                     // flag the samples on both sides of the door as reserved
                     interior.Grid[newDoor.RoomA.Value.x, newDoor.RoomA.Value.y].State = SampleState.RESERVED;
@@ -356,13 +355,13 @@ namespace ProceduralInterior.FunctionLib
                     interior.Rooms[newDoor.RoomA.Key].AddReservedSample(newDoor.RoomA.Value);
                     interior.Rooms[newDoor.RoomB.Key].AddReservedSample(newDoor.RoomB.Value);
 
-                    // Remove both rooms from each others ConnectingWalls Dictionary
+                    // Remove both rooms from each others _neighbours to prevent doubling
                     interior.Rooms[roomIndex].RemoveNeighbourForRoom(nextIndex);
                     interior.Rooms[nextIndex].RemoveNeighbourForRoom(roomIndex);
 
                     // Add reference to door
-                    interior.Rooms[roomIndex].AddDoor(nextIndex, wallIndex);
-                    interior.Rooms[nextIndex].AddDoor(roomIndex, wallIndex);
+                    interior.Rooms[roomIndex].AddDoor(nextIndex, borderIndex);
+                    interior.Rooms[nextIndex].AddDoor(roomIndex, borderIndex);
                 }
             }
         }
