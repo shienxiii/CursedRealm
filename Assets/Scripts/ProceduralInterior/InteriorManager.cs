@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProceduralInterior;
 using ProceduralInterior.FunctionLib;
+using ProceduralInterior.Types;
 using UnityEngine;
 
 namespace ProceduralInterior
@@ -26,6 +27,7 @@ namespace ProceduralInterior
             Initialize();
         }
 
+        [ContextMenu("Initialize")]
         private void Initialize()
         {
             if (_instance != null && _instance != this)
@@ -37,20 +39,26 @@ namespace ProceduralInterior
             _instance = this;
             _settings = ProceduralInteriorSettings.TryGetSettings();
             ReSeed();
+            
+            Debug.Log("initialize Complete");
         }
 
         [ContextMenu("Spawn Level")]
         public void SpawnLevel()
         {
+            Debug.Log("Spawn Level called");
             if (!Settings || _random == null) return;
-
-            List<Interior> prefabs = Settings.InteriorPrefabs;
-            if (prefabs == null || prefabs.Count == 0) return;
+            Debug.Log("Initialization check complete");
+            List<InteriorOptionEntry> options = Settings.Interior;
+            
+            if (options == null || options.Count == 0) return;
+            Debug.Log("Options found");
 
             // Spawning single interior for now
-            int i = _random.Next(0, prefabs.Count);
-            SamplerHelperFunctions.GetRandomElement(prefabs, _random);
-            Interior prefab = prefabs[i];
+            InteriorOptionEntry option = SamplerHelperFunctions.GetRandomElement(options, _random);
+            Interior prefab = option.Prefabs;
+
+            if (!prefab) return;
 
             Interior newInterior = InteriorSpawner.SpawnInterior(prefab, _random, Vector3.zero);
             newInterior.SeedInterior(_random.Next());

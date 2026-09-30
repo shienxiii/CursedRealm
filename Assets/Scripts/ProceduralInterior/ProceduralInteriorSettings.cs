@@ -1,5 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
+using ProceduralInterior.Types;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace ProceduralInterior
     public class ProceduralInteriorSettings : ScriptableObject
     {
         [Header("Assets")]
-        [SerializeField]private List<Interior> _interiorPrefabs;
+        [SerializeField] private List<InteriorOptionEntry> _interiors;
         [SerializeField]private RoomPrefab _defaultGround;
         [SerializeField]private RoomPrefab _defaultWall;
         [SerializeField]private RoomPrefab _defaultDoorWall;
@@ -21,10 +22,10 @@ namespace ProceduralInterior
         [SerializeField] private int _roomSizeOffset = 5;
         [SerializeField] private int _minSamplesPerRoom = 4;
         [SerializeField] private bool _offsetWallNormal = false;
-        [SerializeField] private bool _offsetWallEndToConnection = true;
+        [SerializeField] private bool _offsetWallEndPoints = true;
         [SerializeField] private float _offsetLength = 0.075f;
 
-        public List<Interior> InteriorPrefabs => _interiorPrefabs;
+        public List<InteriorOptionEntry> Interior => _interiors;
         public RoomPrefab DefaultGround => _defaultGround;
         public RoomPrefab DefaultWall => _defaultWall;
         public RoomPrefab DefaultDoorWall => _defaultDoorWall;
@@ -36,7 +37,7 @@ namespace ProceduralInterior
         public int RoomSizeOffset => _roomSizeOffset;
         public int MinSamplesPerRoom => _minSamplesPerRoom;
         public bool OffsetWallNormal => _offsetWallNormal;
-        public bool OffsetWallEndToConnection => _offsetWallEndToConnection;
+        public bool OffsetWallEndPoints => _offsetWallEndPoints;
         public float OffsetLength => _offsetLength;
 
         #region ProjectSettings
@@ -91,7 +92,7 @@ namespace ProceduralInterior
                 guiHandler = _ =>
                 {
                     SerializedObject serializedObject = ProceduralInteriorSettings.GetSerializedSettings();
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_interiorPrefabs"), new GUIContent("Interior Prefabs"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_interiors"), new GUIContent("Interiors"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultGround"), new GUIContent("Default Ground"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultWall"), new GUIContent("Default Wall"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultDoorWall"), new GUIContent("Default Door Wall"));
@@ -103,7 +104,7 @@ namespace ProceduralInterior
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_roomSizeOffset"), new GUIContent("Offset"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_minSamplesPerRoom"), new GUIContent("MinSamplesPerRoom"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_offsetWallNormal"), new GUIContent("Offset Wall Normal"));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_offsetWallEndToConnection"), new GUIContent("Offset Wall End Points To Connection"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_offsetWallEndPoints"), new GUIContent("Offset Wall End Points"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_offsetLength"), new GUIContent("Offset Length"));
                     serializedObject.ApplyModifiedProperties();
                 },

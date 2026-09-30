@@ -66,50 +66,15 @@ namespace ProceduralInterior
 
             ProceduralInteriorSettings settings = InteriorManager.Settings;
             
-            if (!settings || _areas.Splines.Count == 0 || splineIndex < 0 || splineIndex >= _areas.Splines.Count) return;
+            if (!settings || _areas.Splines.Count == 0 ||
+                splineIndex < 0 || splineIndex >= _areas.Splines.Count) return;
 
             // Calculate the area that covers the samples
             Spline area = _areas.Splines[splineIndex];
             if (area.Count == 0) return;
             
-            // Holds the spline points in world space of the area to be initialized
-            List<Vector2> polygon = new List<Vector2>();
-
-            _span = new Vector3Range(_areas.transform.TransformPoint(area[0].Position));
-
-            for (int i = 0; i < area.Count; i++)
-            {
-                Vector3 point = _areas.transform.TransformPoint(area[i].Position);
-                polygon.Add(new Vector2(point.x, point.z));
-
-                _span.A.x = Mathf.Min(point.x, _span.A.x);
-                _span.A.z = Mathf.Min(point.z, _span.A.z);
-                _span.B.x   = Mathf.Max(point.x, _span.B.x);
-                _span.B.z   = Mathf.Max(point.z, _span.B.z);
-            }
-
-            int sizeX = Mathf.CeilToInt((_span.B.x - _span.A.x) / settings.SampleDimension.x);
-            int sizeY = Mathf.CeilToInt((_span.B.z - _span.A.z) / settings.SampleDimension.x);
-
-            // Create the grid
-            _grid = new Sample[sizeX, sizeY];
-            
-            List<Vector2Int> validSamples = new List<Vector2Int>();
-            
-            for (int u = 0; u < sizeX; u++)
-            {
-                for (int v = 0; v < sizeY; v++)
-                {
-                    Vector3 worldPoint = GridPointToWorldPoint(u, v);
-
-                    // if grid point is valid, create the Sample instance and add the grid point to validSamples
-                    if (SamplerHelperFunctions.IsPointInsidePolygon(polygon, new Vector2(worldPoint.x, worldPoint.z)))
-                    {
-                        _grid[u, v] = new Sample();
-                        validSamples.Add(new Vector2Int(u, v));
-                    }
-                }
-            }
+            ParseSpline(area, settings, out List<Vector2> polygon, out Vector2Int gridSize);
+            ParseGrid(polygon, gridSize, out List<Vector2Int> validSamples);
             
             RoomSampler.GenerateRooms(this, validSamples);
             RoomSampler.SampleBorder(this);
@@ -124,6 +89,56 @@ namespace ProceduralInterior
             
         }
 
+        private void ParseSpline(Spline spline, ProceduralInteriorSettings settings, out List<Vector2> edges, out Vector2Int gridSize)
+        {
+            edges = new List<Vector2>();
+            
+            if (!settings || spline.Count == 0)
+            {
+                gridSize = Vector2Int.zero;
+                return;
+            }
+            
+            // Holds the spline points in world space of the area to be initialized
+            _span = new Vector3Range(_areas.transform.TransformPoint(spline[0].Position));
+
+            for (int i = 0; i < spline.Count; i++)
+            {
+                Vector3 point = _areas.transform.TransformPoint(spline[i].Position);
+                edges.Add(new Vector2(point.x, point.z));
+
+                _span.A.x = Mathf.Min(point.x, _span.A.x);
+                _span.A.z = Mathf.Min(point.z, _span.A.z);
+                _span.B.x   = Mathf.Max(point.x, _span.B.x);
+                _span.B.z   = Mathf.Max(point.z, _span.B.z);
+            }
+
+            gridSize = new Vector2Int(Mathf.CeilToInt((_span.B.x - _span.A.x) / settings.SampleDimension.x),
+                                        Mathf.CeilToInt((_span.B.z - _span.A.z) / settings.SampleDimension.x));
+        }
+
+        private void ParseGrid(List<Vector2> edges, Vector2Int gridSize, out List<Vector2Int> validSamples)
+        {
+            // Create the grid
+            _grid = new Sample[gridSize.x, gridSize.y];
+            
+            validSamples = new List<Vector2Int>();
+            
+            for (int u = 0; u < gridSize.x; u++)
+            {
+                for (int v = 0; v < gridSize.y; v++)
+                {
+                    Vector3 worldPoint = GridPointToWorldPoint(u, v);
+
+                    // if grid point is valid, create the Sample instance and add the grid point to validSamples
+                    if (SamplerHelperFunctions.IsPointWithinPolygon(edges, new Vector2(worldPoint.x, worldPoint.z)))
+                    {
+                        _grid[u, v] = new Sample();
+                        validSamples.Add(new Vector2Int(u, v));
+                    }
+                }
+            }
+        }
         public Vector3 GridPointToWorldPoint(Vector2Int point, bool bCenterH = true, bool bCenterV = false)
         {
             return GridPointToWorldPoint(point.x, point.y, bCenterH, bCenterV);

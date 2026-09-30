@@ -3,7 +3,8 @@ using UnityEngine;
 namespace ProceduralInterior.Types
 {
     // <summary>
-    /// Holds 2 Vector2Int points which represents a grid's span
+    /// Holds 2 Vector2Int points which represents a grid's span.
+    /// Constructor will always ensure both x and y of vector A to be smaller than vector B
     /// </summary>
     public struct GridSpan
     {
@@ -21,19 +22,11 @@ namespace ProceduralInterior.Types
             A = inA;
             B = inB;
 
-            if (A.x > B.x)
-            {
-                int aX = B.x;
-                B.x = A.x;
-                A.x = aX;
-            }
+            if (A.x > B.x) 
+                (B.x, A.x) = (A.x, B.x);
 
             if (A.y > B.y)
-            {
-                int aY = B.y;
-                B.y = A.y;
-                A.y = aY;
-            }
+                (B.y, A.y) = (A.y, B.y);
         }
 
         /// <summary>

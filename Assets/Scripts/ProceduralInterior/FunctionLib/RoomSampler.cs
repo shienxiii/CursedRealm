@@ -201,9 +201,6 @@ namespace ProceduralInterior.FunctionLib
             int width = interior.Grid.GetLength(0);
             int height = interior.Grid.GetLength(1);
 
-            float cellSize = settings.SampleDimension.x;
-            float halfSize = cellSize * 0.5f;
-
             HashSet<WallSample> walls = new HashSet<WallSample>();
 
             // Test if there is a wall between 2 sample point and add the wall

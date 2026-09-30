@@ -11,7 +11,7 @@ namespace ProceduralInterior.FunctionLib
         /// Polygon points should be ordered around the perimeter
         /// (clockwise or counter-clockwise).
         /// </summary>
-        public static bool IsPointInsidePolygon(List<Vector2> polygon, Vector2 point)
+        public static bool IsPointWithinPolygon(List<Vector2> polygon, Vector2 point)
         {
             int count = 0;
 

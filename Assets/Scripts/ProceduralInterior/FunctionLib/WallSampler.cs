@@ -122,13 +122,13 @@ namespace ProceduralInterior.FunctionLib
             }
             
             // Now that the wall is sorted, we want to apply the offsets
-            if(!settings.OffsetWallEndToConnection) return;
+            if(!settings.OffsetWallEndPoints) return;
             
             for (int u = 0; u < walls.Count; u++)
             {
                 int v = (u + 1) % walls.Count;
                 
-                if(!settings.OffsetWallEndToConnection) continue;
+                if(!settings.OffsetWallEndPoints) continue;
                 
                 Wall current = walls[u];
                 Wall next = walls[v];
