@@ -12,9 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 195d33cfcd3d16d418a745cc7b539edc, type: 3}
   m_Name: ProceduralInteriorSettings
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralInteriorSettings
-  _interiorPrefabs:
-  - {fileID: 6208365809100469107, guid: 2631848d382039c409341b755b7ed2f4, type: 3}
-  - {fileID: 4906494016395526968, guid: a7f8f75cdbc9b4a4c99d92b188daf9e1, type: 3}
+  _interiors:
+  - Prefabs: {fileID: 6208365809100469107, guid: 2631848d382039c409341b755b7ed2f4, type: 3}
+    MinRoomCount: 10
+    MaxRoomCount: 15
+    RoomSizeOffset: 5
+  - Prefabs: {fileID: 4906494016395526968, guid: a7f8f75cdbc9b4a4c99d92b188daf9e1, type: 3}
+    MinRoomCount: 10
+    MaxRoomCount: 15
+    RoomSizeOffset: 5
   _defaultGround:
     _prefab: {fileID: 1847223854238304986, guid: db6df5fd634570d4399c39263c1e2ff1, type: 3}
     _dimension: {x: 1, y: 1, z: 1}
@@ -37,5 +43,5 @@ MonoBehaviour:
   _roomSizeOffset: 5
   _minSamplesPerRoom: 4
   _offsetWallNormal: 0
-  _offsetWallEndToConnection: 1
+  _offsetWallEndPoints: 1
   _offsetLength: 0.075

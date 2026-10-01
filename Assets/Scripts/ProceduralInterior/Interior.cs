@@ -178,7 +178,7 @@ namespace ProceduralInterior
         {
             // clear all room and wall information
             foreach (Room room in _rooms)
-                room.ClearRoomConstructionObject();
+                room.ClearStructures();
             _rooms.Clear();
             _borders.Clear();
         }

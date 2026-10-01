@@ -15,55 +15,39 @@ namespace ProceduralInterior
     {
         // Starting and ending grid point of the rectangle making up this room
         private GridSpan _span;
-
-        /// A list of rectangular spaces making up this Room.
-        /// Each rectangles are a span continuous samples making up this room.
-        private List<GridSpan> _spaces = new List<GridSpan>();
-
-        // walls making up this room, values are indexes to Interior._wallSamples in owning Interior
-        private List<int> _wallSamples = new List<int>();
-
-        // Actual wall information specific to this Room after merging and processing everything in _wallSamples
-        private List<Wall> _walls = new List<Wall>();
-
-        private Dictionary<int, int> _doors = new Dictionary<int, int>();
-        private List<Vector2Int> _reserved = new List<Vector2Int>();
         
-        // List of GameObjects making up this Room, mainly the walls, floors and ceiling
-        private List<GameObject> _structures = new List<GameObject>();
-
-        public Vector2Int Start => _span.A;
-        public Vector2Int End => _span.B;
-        public Vector2Int Dimension => _span.GetDimension();
-        public List<GridSpan> Spaces => _spaces;
-        public List<int> WallSamples => _wallSamples;
-        public List<Wall> Walls => _walls;
-
-        /// <summary>
-        // Doors to the another room
-        // Key : Room index
-        // Value : Wall index of the door
-        /// </summary>
+        private List<GridSpan> _spaces       = new(); // collection of rectangles made up of all the samples of this room
+        private List<int> _borders           = new(); // indexes the border samples in owning Interior
+        private List<Wall> _walls            = new(); // walls making up and facing this room
+        private List<Vector2Int> _reserved   = new(); // indexes to samples within this room marked as reserved
+        private List<GameObject> _structures = new(); // GameObjects making up this Room, mainly the walls, floors and ceiling
+        private Dictionary<int, int> _doors  = new(); // KVP of all Rooms sharing a door marked border with this Room and index to that border
+        
+        public Vector2Int Start           => _span.A;
+        public Vector2Int End             => _span.B;
+        public Vector2Int Dimension       => _span.GetDimension();
+        public List<GridSpan> Spaces      => _spaces;
+        public List<int> Borders          => _borders;
+        public List<Wall> Walls           => _walls;
+        public List<Vector2Int> Reserved  => _reserved;
         public Dictionary<int, int> Doors => _doors;
-        
-        /// <summary>
-        /// Indexes for all reserved Samples in this room
-        /// </summary>
-        public List<Vector2Int> Reserved => _reserved;
-
 
         // Temporary Dictionary to the list of walls that can be converted to a door to another room
         // Key: Next room index | Value: Walls separating this room from the next room
-        // NOTE: Clear after assigning door
-        private Dictionary<int, List<int>> _neighbours = new Dictionary<int, List<int>>();
-        public Dictionary<int, List<int>> Neighbours => _neighbours;
+        // NOTE: Should be empty after door assignment
+        private Dictionary<int, List<int>> _neighbours = new();
+        public Dictionary<int, List<int>> Neighbours   => _neighbours;
 
-        public Color debugColor;
+        #if UNITY_EDITOR
+            public Color debugColor;
+        #endif
 
         public Room(List<Vector2Int> samples)
         {
-            System.Random rand = new System.Random();
-            debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
+            #if UNITY_EDITOR
+                System.Random rand = new System.Random();
+                debugColor = new Color(((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255, ((float)rand.Next(255)) / 255);
+            #endif
 
             if (samples.Count == 0)
             {
@@ -97,7 +81,6 @@ namespace ProceduralInterior
                 _neighbours[connectingRoom].Add(wallIndex);
         }
 
-
         public void RemoveNeighbourForRoom(int connectingRoom)
         {
             _neighbours.Remove(connectingRoom);
@@ -105,7 +88,7 @@ namespace ProceduralInterior
 
         public void AddBorder(int wallIndex)
         {
-            _wallSamples.Add(wallIndex);
+            _borders.Add(wallIndex);
         }
 
         public bool AddDoor(int nextRoomIndex, int wallIndex)
@@ -122,11 +105,11 @@ namespace ProceduralInterior
         }
 
         /// <summary>
-        /// Convert a Vector2Int from the context of this Room's context to the owning Interior's context
+        /// Convert a Vector2Int from Room's relative point to the owning Interior's relative point
         /// i.e: (u, v) will be converted to (Start.x + u, Start.Y +v)
         /// </summary>
         /// <param name="inPoint"></param>
-        /// <returns></returns>
+        /// <returns>Owning Interior's relative point</returns>
         public Vector2Int RoomPointToInteriorPoint(Vector2Int inPoint)
         {
             return inPoint + Start;
@@ -142,7 +125,7 @@ namespace ProceduralInterior
             _structures.AddRange(inStructures);
         }
 
-        public void ClearRoomConstructionObject()
+        public void ClearStructures()
         {
             foreach (GameObject structure in _structures)
             {

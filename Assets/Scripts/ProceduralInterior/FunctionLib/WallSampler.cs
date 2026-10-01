@@ -19,7 +19,7 @@ namespace ProceduralInterior.FunctionLib
             Room room = inInterior.Rooms[roomIndex];
             if (room == null) return;
 
-            List<WallGroup> wallGroups = SortBorders(inInterior.Borders, roomIndex, room.WallSamples, room.Walls);
+            List<WallGroup> wallGroups = SortBorders(inInterior.Borders, roomIndex, room.Borders, room.Walls);
             if (wallGroups == null) return;
 
             foreach (WallGroup wallGroup in wallGroups)
