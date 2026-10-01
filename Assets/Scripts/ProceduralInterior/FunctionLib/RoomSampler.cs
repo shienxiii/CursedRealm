@@ -198,75 +198,80 @@ namespace ProceduralInterior.FunctionLib
             if (!interior || interior.Grid == null || !settings)
                 return;
 
-            int width = interior.Grid.GetLength(0);
-            int height = interior.Grid.GetLength(1);
+            Vector2Int gridSize = new Vector2Int(interior.Grid.GetLength(0), interior.Grid.GetLength(1));
 
             HashSet<Border> borders = new HashSet<Border>();
 
-            // Test if there is a border between 2 sample points and create the border
-            void ParseForBorder(in Vector3 start, in Vector3 end, in int roomA, in Vector2Int sampleA, in Vector2Int sampleB)
+            for (int x = 0; x < gridSize.x; x++)
             {
-                // test to see if next sample is within spline
-                bool isInside = sampleB.x >= 0 && sampleB.y >= 0 && sampleB.x < width && sampleB.y < height && interior.Grid[sampleB.x, sampleB.y] != null;
-
-                int roomB = isInside ? interior.Grid[sampleB.x, sampleB.y].RoomIndex : -1;
-
-                if (roomA == roomB) return;
-
-                Border newBorder = new Border(roomA, roomB, new Vector2Int(sampleA.x, sampleA.y), new Vector2Int(sampleB.x, sampleB.y), start, end);
-                if (!borders.Add(newBorder)) return;
-
-                interior.Borders.Add(newBorder);
-
-                int borderIndex = interior.Borders.Count - 1;
-
-                // add reference to the sample in the rooms
-                if (roomA >= 0)
-                    interior.Rooms[roomA].AddBorder(borderIndex);
-
-                if (roomB >= 0)
-                    interior.Rooms[roomB].AddBorder(borderIndex);
-
-                // if roomA and roomB are index to actual room, add room connection here
-                if (roomA > -1 && roomB > -1)
-                {
-                    interior.Rooms[roomA].AddNeighbourForRoom(roomB, borderIndex);
-                    interior.Rooms[roomB].AddNeighbourForRoom(roomA, borderIndex);
-                }
-
-            }
-            
-            for (int x = 0; x < width; x++)
-            {
-                for (int z = 0; z < height; z++)
+                for (int z = 0; z < gridSize.y; z++)
                 {
                     int roomA = x > -1 && z > -1 && interior.Grid[x, z] != null ? interior.Grid[x, z].RoomIndex : -1;
 
+                    KeyValuePair<int, Vector2Int> currentSample = new KeyValuePair<int, Vector2Int>(roomA, new Vector2Int(x, z));
+                    
+                    // ReSharper disable once InvalidXmlDocComment
                     /** Grid Guide
-                     *  tl-----tr    
-                     *  |      |
-                     *  |      |
-                     *  bl-----br
+                     *  tl---tr    
+                     *  |    |
+                     *  bl---br
                      */
                     
                     Vector3 tl = interior.GridPointToWorldPoint(x, z + 1, false);
                     Vector3 br = interior.GridPointToWorldPoint(x + 1, z, false);
                     Vector3 tr = interior.GridPointToWorldPoint(x + 1, z + 1, false);
 
-                    ParseForBorder(br, tr, roomA, new Vector2Int(x, z), new Vector2Int(x + 1, z));
-                    ParseForBorder(tl, tr, roomA, new Vector2Int(x, z), new Vector2Int(x, z + 1));
+                    ParseForBorder(interior, new Vector3Range(br, tr), currentSample, new Vector2Int(x + 1, z), borders);
+                    ParseForBorder(interior, new Vector3Range(tl, tr), currentSample, new Vector2Int(x, z + 1), borders);
 
                     if (x == 0 || z == 0)
                     {
                         Vector3 bl = interior.GridPointToWorldPoint(x, z, false);
-                        if (x == 0)
-                            ParseForBorder(bl, tl, roomA, new Vector2Int(x, z), new Vector2Int(x - 1, z));
-
-                        if (z == 0)
-                            ParseForBorder(bl, br, roomA, new Vector2Int(x, z), new Vector2Int(x, z - 1));
+                        
+                        if (x == 0) ParseForBorder(interior, new Vector3Range(bl, tl), currentSample, new Vector2Int(x - 1, z), borders);
+                        if (z == 0) ParseForBorder(interior, new Vector3Range(bl, br), currentSample, new Vector2Int(x, z - 1), borders);
                     }
                 }
             }
+        }
+        
+        // Test if there is a border between 2 sample points and create the border
+        private static void ParseForBorder(Interior interior, in Vector3Range endPoints,
+                                            in KeyValuePair<int, Vector2Int> roomA, in Vector2Int sampleB,
+                                            HashSet<Border> borders)
+        {
+            // no need to null check here since everything should have been checked by calling function prior
+            
+            Vector2Int gridSize = new Vector2Int(interior.Grid.GetLength(0), interior.Grid.GetLength(1));
+            
+            // test to see if next sample is within spline
+            bool isInside = sampleB.x >= 0 && sampleB.y >= 0 && sampleB.x < gridSize.x && sampleB.y < gridSize.y && interior.Grid[sampleB.x, sampleB.y] != null;
+            int indexB = isInside ? interior.Grid[sampleB.x, sampleB.y].RoomIndex : -1;
+
+            int indexA = roomA.Key;
+
+            if (indexA == indexB) return;
+
+            KeyValuePair<int, Vector2Int> roomB = new KeyValuePair<int, Vector2Int>(indexB, sampleB);
+            Border newBorder = new Border(roomA, roomB, endPoints);
+
+            if (!borders.Add(newBorder)) return;
+
+            interior.Borders.Add(newBorder);
+
+            int borderIndex = interior.Borders.Count - 1;
+
+            // add reference to the sample in the rooms
+            if (indexA > -1) interior.Rooms[indexA].AddBorder(borderIndex);
+            if (indexB > -1) interior.Rooms[indexB].AddBorder(borderIndex);
+
+            // if roomA and roomB are index to actual room, add room connection here
+            if (indexA > -1 && indexB > -1)
+            {
+                interior.Rooms[indexA].AddNeighbourForRoom(indexB, borderIndex);
+                interior.Rooms[indexB].AddNeighbourForRoom(indexA, borderIndex);
+            }
+
         }
 
         /// <summary>

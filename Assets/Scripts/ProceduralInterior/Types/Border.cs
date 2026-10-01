@@ -20,8 +20,6 @@ namespace ProceduralInterior.Types
 
 
         /*** PUBLIC PROPERTIES ***/
-        /*public KeyValuePair<int, Vector2Int> RoomA => _roomA;
-        public KeyValuePair<int, Vector2Int> RoomB => _roomB;*/
         // We want to know the sample span
         public Vector3 Start => _endPoints.A;
         public Vector3 End => _endPoints.B;
@@ -30,28 +28,21 @@ namespace ProceduralInterior.Types
         // direction will always be either (1,0,0) or (0,0,1)
         public Vector3 Direction => _direction;
 
-        public Border(int inRoomA, int inRoomB,
-                    Vector2Int inSampleA, Vector2Int inSampleB,
-                    Vector3 inStart, Vector3 inEnd)
+        public Border(KeyValuePair<int, Vector2Int> inRoomA,
+                        KeyValuePair<int, Vector2Int> inRoomB,
+                        Vector3Range inEndPoints)
         {
-            // we want to keep reference both reference even if one of them is -1
-            RoomA = new KeyValuePair<int, Vector2Int>(inRoomA, inSampleA);
-            RoomB = new KeyValuePair<int, Vector2Int>(inRoomB, inSampleB);
+            _endPoints = inEndPoints;
+            
+            // if _endPoints.A(treated as start in Border) is bigger than _endPoints.B(treated as end in Border),
+            // swap their position
+            if (_endPoints.A.x > _endPoints.B.x && !Mathf.Approximately(_endPoints.A.x, _endPoints.B.x) ||
+                _endPoints.A.y > _endPoints.B.y && !Mathf.Approximately(_endPoints.A.y, _endPoints.B.y))
+                (_endPoints.A, _endPoints.B) = (_endPoints.B, _endPoints.A);
 
-            // we want Start to hold the lower X or if they're approximately the same, the lower z
-            if (inStart.x < inEnd.x && !Mathf.Approximately(inStart.x, inEnd.x) ||
-                inStart.z < inEnd.z && !Mathf.Approximately(inStart.z, inEnd.z))
-            {
-                _endPoints.A = inStart;
-                _endPoints.B = inEnd;
-            }
-            else
-            {
-                _endPoints.A = inEnd;
-                _endPoints.B = inStart;
-            }
-
-
+            RoomA = inRoomA;
+            RoomB = inRoomB;
+            
             // direction will always be either (1,0,0) or (0,0,1)
             _direction = _endPoints.B - _endPoints.A;
             _direction.Normalize();

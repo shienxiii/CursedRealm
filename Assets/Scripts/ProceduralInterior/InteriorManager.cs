@@ -39,8 +39,6 @@ namespace ProceduralInterior
             _instance = this;
             _settings = ProceduralInteriorSettings.TryGetSettings();
             ReSeed();
-            
-            Debug.Log("initialize Complete");
         }
 
         [ContextMenu("Spawn Level")]
