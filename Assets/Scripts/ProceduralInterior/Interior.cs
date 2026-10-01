@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProceduralInterior.Types;
 using ProceduralInterior.FunctionLib;
-using Unity.VisualScripting;
-using UnityEngine.Serialization;
 using UnityEngine.Splines;
 
 
@@ -18,35 +16,26 @@ namespace ProceduralInterior
         // Sample and rooms
         private Vector3Range _span;
         private Sample[,] _grid;
-        private List<Room> _rooms = new List<Room>();
-        private List<Border> _borders = new List<Border>();
-        private System.Random _interiorRandom = null;
-
-        private List<GameObject> _objects = new List<GameObject>();
         
+        private List<Room> _rooms     = new List<Room>();
+        private List<Border> _borders = new List<Border>();
+        private System.Random _random = null;
+
         /*** PUBLIC PROPERTIES ***/
-        public Sample[,] Grid => _grid;
-        public List<Room> Rooms => _rooms;
+        public Sample[,] Grid       => _grid;
+        public List<Room> Rooms     => _rooms;
         public List<Border> Borders => _borders;
-        public System.Random InteriorRandom => _interiorRandom;
+        public System.Random Random => _random;
 
         #if UNITY_EDITOR
             [Header("Debug")]
-            [SerializeField] private bool _drawDebug = false;
             [SerializeField] private int _splineToDebug = 0;
-            public bool applySeed = false;
-            public int debugSeed = 5000;
-
-            [ContextMenu("Debug Gen")]
-            public void DebugGenerate()
-            {
-                if (!applySeed)
-                    debugSeed = unchecked((int)System.DateTime.Now.Ticks);
-
-                SeedInterior(debugSeed);
-                SampleInterior(_splineToDebug);
-                InteriorSpawner.SpawnStructures(this);
-            }
+            [SerializeField] public bool _applySeed     = false;
+            [SerializeField] public int _debugSeed      = 5000;
+            [SerializeField] private bool _drawFloor   = false;
+            [SerializeField] private bool _drawWall     = false;
+            [SerializeField] private bool _drawReserved = false;
+            [SerializeField] private bool _spawnStructures = false;
         #endif
         
         /// <summary>
@@ -56,10 +45,10 @@ namespace ProceduralInterior
         /// <returns>List of indexes of valid samples on the grid</returns>
         public void SampleInterior(int splineIndex = 0)
         {
-            ClearSamples();
+            Clear();
             
             // Should only be called after seeding
-            if (_interiorRandom == null) return;
+            if (_random == null) return;
             
             if (_areas == null)
                 _areas = GetComponent<SplineContainer>();
@@ -139,6 +128,7 @@ namespace ProceduralInterior
                 }
             }
         }
+        
         public Vector3 GridPointToWorldPoint(Vector2Int point, bool bCenterH = true, bool bCenterV = false)
         {
             return GridPointToWorldPoint(point.x, point.y, bCenterH, bCenterV);
@@ -171,19 +161,94 @@ namespace ProceduralInterior
 
         public void SeedInterior(int inSeed)
         {
-            _interiorRandom = new System.Random(inSeed);
+            _random = new System.Random(inSeed);
         }
 
-        public void ClearSamples()
+        public void Clear()
         {
             // clear all room and wall information
+            
             foreach (Room room in _rooms)
                 room.ClearStructures();
+            
             _rooms.Clear();
             _borders.Clear();
         }
         
         #if UNITY_EDITOR
+            [ContextMenu("Debug Gen")]
+            public void DebugGenerate()
+            {
+                if (!_applySeed)
+                    _debugSeed = unchecked((int)System.DateTime.Now.Ticks);
+
+                SeedInterior(_debugSeed);
+                SampleInterior(_splineToDebug);
+                    
+                if(_spawnStructures)
+                    InteriorSpawner.SpawnStructures(this);
+            }
+
+            private void DrawRoomDebug(ProceduralInteriorSettings settings)
+            {
+                if (!settings) return;
+                
+                foreach (Room room in _rooms)
+                {
+                    Gizmos.color = room.debugColor;
+                    
+                    if(_drawFloor)
+                        foreach (GridSpan space in room.Spaces)
+                        {
+                            Vector3 startPoint = GridPointToWorldPoint(space.A);
+                            Vector3 endPoint   = GridPointToWorldPoint(space.B);
+                            Vector3 center     = (startPoint + endPoint) / 2;
+
+                            Vector2Int dimension = space.GetDimension();
+                            Vector3 size = new Vector3((settings.SampleDimension.x * dimension.x) - 0.1f, 0.0f, (settings.SampleDimension.x * dimension.y) - 0.1f);
+
+                            Gizmos.DrawCube(center, size);
+                        }
+
+
+                    if (_drawWall)
+                        foreach (Wall wall in room.Walls)
+                        {
+                            Gizmos.color = wall.IsDoor ? Color.green : Color.white;
+
+                            Vector3 size       = wall.End - wall.Start;
+                            Vector3 sizeNormal = size.normalized;
+
+                            float x = Mathf.Abs(size.x) - (sizeNormal.x * 0.075f) + (sizeNormal.z * 0.05f);
+                            float y = 3.0f;
+                            float z = Mathf.Abs(size.z) - (sizeNormal.z * 0.075f) + (sizeNormal.x * 0.05f);
+
+                            Vector3 center = wall.Start + wall.End;
+                            center.x /= 2;
+                            center.y += 1.5f;
+                            center.z /= 2;
+                            center += (wall.Normal * 0.1f);
+
+                            Gizmos.DrawCube(center, new Vector3(x, y, z));
+                        }
+                    
+                    if(_drawReserved)
+                        foreach (Vector2Int reserved in room.Reserved)
+                        {
+                            Sample sample = _grid[reserved.x, reserved.y];
+                            if(sample == null) continue;
+                            
+                            Vector3 point = GridPointToWorldPoint(reserved);
+                            Vector3 size = new Vector3(settings.SampleDimension.x - 0.35f, 0.2f, settings.SampleDimension.x - 0.35f);
+
+                            Gizmos.color = sample.State == SampleState.RESERVED ? Color.green : Color.red;
+                            Gizmos.DrawCube(point, size);
+                            Gizmos.color = room.debugColor;
+                            Gizmos.DrawSphere(point, 0.4f);
+                        }
+                }
+            }
+            
             private void OnDrawGizmos()
             {
                 if (_areas == null)
@@ -191,73 +256,18 @@ namespace ProceduralInterior
 
                 ProceduralInteriorSettings settings = InteriorManager.Settings;
 
-                if (!_drawDebug || !settings ||
-                    (_grid?.Length ?? 0) == 0 || _areas.Splines.Count == 0 ||
-                    _splineToDebug < 0 || _splineToDebug >= _areas.Splines.Count) return;
+                if (!settings || (_grid?.Length ?? 0) == 0 ||
+                    _areas.Splines.Count == 0 || _splineToDebug < 0 ||
+                    _splineToDebug >= _areas.Splines.Count) return;
 
-                foreach (Room room in _rooms)
-                {
-                    Gizmos.color = room.debugColor;
-                    foreach (GridSpan space in room.Spaces)
-                    {
-                        Vector2Int start = space.A;
-                        Vector2Int end = space.B;
-
-                        Vector3 startPoint = GridPointToWorldPoint(start.x, start.y);
-                        Vector3 endPoint = GridPointToWorldPoint(end.x, end.y);
-                        Vector3 center = (startPoint + endPoint) / 2;
-
-                        Vector2Int dimension = space.GetDimension();
-                        Vector3 size = new Vector3((settings.SampleDimension.x * dimension.x) - 0.1f, 0.0f, (settings.SampleDimension.x * dimension.y) - 0.1f);
-
-                        Gizmos.DrawCube(center, size);
-                    }
-
-                    /*List<Wall> walls = room.Walls;
-                    foreach (Wall wall in walls)
-                    {
-                        Gizmos.color = wall.IsDoor ? Color.green : Color.white;
-
-                        Vector3 size = wall.End - wall.Start;
-                        Vector3 normalized = size.normalized;
-
-                        float x = Mathf.Abs(size.x) - (normalized.x * 0.075f) + (normalized.z * 0.05f);
-                        float y = 3.0f;
-                        float z = Mathf.Abs(size.z) - (normalized.z * 0.075f) + (normalized.x * 0.05f);
-
-                        Vector3 center = wall.Start + wall.End;
-                        center.x /= 2;
-                        center.y += 1.5f;
-                        center.z /= 2;
-                        center += (wall.Normal * 0.1f);
-
-                        Gizmos.DrawCube(center, new Vector3(x, y, z));
-                    }*/
-                }
+                if(_drawFloor || _drawWall || _drawReserved)
+                    DrawRoomDebug(settings);
                 
-                for (int x = 0; x < _grid.GetLength(0); x++)
-                {
-                    for(int y = 0; y < _grid.GetLength(1); y++)
-                    {
-                        Sample sample = _grid[x, y];
-                        if (sample == null) continue;
-
-                        Room room = _rooms[sample.RoomIndex];
-                        //
-
-                        if (sample.State == SampleState.RESERVED)
-                        {
-                            Vector3 point = GridPointToWorldPoint(x, y);
-                            Vector3 size = new Vector3(settings.SampleDimension.x - 0.2f, 0.2f, settings.SampleDimension.x - 0.2f);
-
-                            Gizmos.color = Color.green;
-                            Gizmos.DrawCube(point, size);
-                            Gizmos.color = room.debugColor;
-                            Gizmos.DrawSphere(point, 0.4f);
-                        }
-                    }
-                }
+                
+                
             }
+
+            
         #endif
     }
 }

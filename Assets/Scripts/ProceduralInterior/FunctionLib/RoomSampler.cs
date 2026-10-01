@@ -22,7 +22,7 @@ namespace ProceduralInterior.FunctionLib
                 !settings || (interior.Grid?.Length ?? 0) == 0
                 || validSamples.Count == 0) return;
 
-            int roomCount = interior.InteriorRandom.Next(settings.MinRoomCount, settings.MaxRoomCount + 1);
+            int roomCount = interior.Random.Next(settings.MinRoomCount, settings.MaxRoomCount + 1);
             int roomSizeOffset = Mathf.Abs(settings.RoomSizeOffset);
 
             // We want to cache the room samples before creating the Room objects
@@ -35,7 +35,7 @@ namespace ProceduralInterior.FunctionLib
                 if (roomCount - interior.Rooms.Count <= 0 || validSamples.Count < settings.MinSamplesPerRoom)
                     targetSize = validSamples.Count;
                 else
-                    targetSize = Math.Clamp((validSamples.Count / roomCount) + interior.InteriorRandom.Next(-roomSizeOffset, roomSizeOffset + 1),
+                    targetSize = Math.Clamp((validSamples.Count / roomCount) + interior.Random.Next(-roomSizeOffset, roomSizeOffset + 1),
                                 settings.MinSamplesPerRoom,
                                 validSamples.Count);
 
@@ -45,7 +45,7 @@ namespace ProceduralInterior.FunctionLib
                 int roomIndex = roomCache.Count;
 
                 // get a starting point to generate the room and add to the cardinalSamples list
-                cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, interior.InteriorRandom, false));
+                cardinalSamples.Add(SamplerHelperFunctions.GetRandomElement(validSamples, interior.Random, false));
 
                 // Generate the room recursively
                 GenerateRoom_Recursive(interior, validSamples, roomSamples, cardinalSamples, targetSize, roomIndex);
@@ -84,7 +84,7 @@ namespace ProceduralInterior.FunctionLib
         private static void GenerateRoom_Recursive(Interior interior, List<Vector2Int> validSamples, List<Vector2Int> roomSamples, List<Vector2Int> cardinalSamples, int targetSize, int roomIndex)
         {
             // Get a random sample from cardinalSamples and remove the sample from both roomSamples and cardinalSamples
-            Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, interior.InteriorRandom, true);
+            Vector2Int currentSample = SamplerHelperFunctions.GetRandomElement(cardinalSamples, interior.Random, true);
             validSamples.Remove(currentSample);
 
             // Assign roomIndex to the position on interior.Samples and assign currentSample to roomSamples
@@ -175,7 +175,7 @@ namespace ProceduralInterior.FunctionLib
 
             if (roomCandidates.Count == 0) return -1;
 
-            int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates, interior.InteriorRandom);
+            int newIndex = SamplerHelperFunctions.GetRandomElement(roomCandidates, interior.Random);
 
             foreach (Vector2Int sample in roomSamples)
             {
@@ -331,7 +331,7 @@ namespace ProceduralInterior.FunctionLib
                 {
                     // Check if we want to establish path with this room or break the path
                     bool canBreakPath = CanBreakDirectPath(interior.Rooms, roomIndex, nextIndex);
-                    bool keepPath = (interior.InteriorRandom.Next(100) % 4) > 2;
+                    bool keepPath = (interior.Random.Next(100) % 4) > 2;
 
                     if (canBreakPath && !keepPath)
                     {
@@ -340,7 +340,7 @@ namespace ProceduralInterior.FunctionLib
                         continue;
                     }
 
-                    int borderIndex = SamplerHelperFunctions.GetRandomElement(neighbour[nextIndex], interior.InteriorRandom);
+                    int borderIndex = SamplerHelperFunctions.GetRandomElement(neighbour[nextIndex], interior.Random);
 
                     // flag the selected border for a door
                     Border newDoor = interior.Borders[borderIndex];

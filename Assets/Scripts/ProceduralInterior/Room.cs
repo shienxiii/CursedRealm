@@ -57,7 +57,7 @@ namespace ProceduralInterior
 
             // Generate Space data
             Vector2Int start = samples[0];
-            Vector2Int end = samples[0];
+            Vector2Int end   = samples[0];
 
             for (int i = 1; i < samples.Count; i++)
             {
