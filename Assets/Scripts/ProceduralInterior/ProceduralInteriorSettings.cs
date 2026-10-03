@@ -9,7 +9,7 @@ namespace ProceduralInterior
     public class ProceduralInteriorSettings : ScriptableObject
     {
         [Header("Assets")]
-        [SerializeField] private List<InteriorOptionEntry> _interiors;
+        [SerializeField] private List<InteriorSettings> _interiors = new();
         [SerializeField]private RoomPrefab _defaultGround;
         [SerializeField]private RoomPrefab _defaultWall;
         [SerializeField]private RoomPrefab _defaultDoorWall;
@@ -21,11 +21,10 @@ namespace ProceduralInterior
         [SerializeField] private int _maxRoomCount = 10;
         [SerializeField] private int _roomSizeOffset = 5;
         [SerializeField] private int _minSamplesPerRoom = 4;
-        [SerializeField] private bool _offsetWallNormal = false;
         [SerializeField] private bool _offsetWallEndPoints = true;
         [SerializeField] private float _offsetLength = 0.075f;
 
-        public List<InteriorOptionEntry> Interior => _interiors;
+        public List<InteriorSettings> Interior => _interiors;
         public RoomPrefab DefaultGround => _defaultGround;
         public RoomPrefab DefaultWall => _defaultWall;
         public RoomPrefab DefaultDoorWall => _defaultDoorWall;
@@ -36,7 +35,6 @@ namespace ProceduralInterior
         public int MaxRoomCount => _maxRoomCount;
         public int RoomSizeOffset => _roomSizeOffset;
         public int MinSamplesPerRoom => _minSamplesPerRoom;
-        public bool OffsetWallNormal => _offsetWallNormal;
         public bool OffsetWallEndPoints => _offsetWallEndPoints;
         public float OffsetLength => _offsetLength;
 
@@ -92,6 +90,7 @@ namespace ProceduralInterior
                 guiHandler = _ =>
                 {
                     SerializedObject serializedObject = ProceduralInteriorSettings.GetSerializedSettings();
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_interior"), new GUIContent("Interior"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_interiors"), new GUIContent("Interiors"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultGround"), new GUIContent("Default Ground"));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_defaultWall"), new GUIContent("Default Wall"));

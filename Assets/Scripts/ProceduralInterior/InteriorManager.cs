@@ -11,6 +11,7 @@ namespace ProceduralInterior
     {
         private static InteriorManager _instance = null;
         private static ProceduralInteriorSettings _settings = null;
+        private Dictionary<System.Guid, int> _interiorIndex;
         public static System.Random _random = null;
         private static SerializableDictionary<Interior, int> _interiorMap;
 
@@ -39,6 +40,7 @@ namespace ProceduralInterior
             _instance = this;
             _settings = ProceduralInteriorSettings.TryGetSettings();
             ReSeed();
+            CacheInteriorSettingsIndex();
         }
 
         [ContextMenu("Spawn Level")]
@@ -47,13 +49,13 @@ namespace ProceduralInterior
             Debug.Log("Spawn Level called");
             if (!Settings || _random == null) return;
             Debug.Log("Initialization check complete");
-            List<InteriorOptionEntry> options = Settings.Interior;
+            List<InteriorSettings> options = Settings.Interior;
             
             if (options == null || options.Count == 0) return;
             Debug.Log("Options found");
 
             // Spawning single interior for now
-            InteriorOptionEntry option = SamplerHelperFunctions.GetRandomElement(options, _random);
+            InteriorSettings option = SamplerHelperFunctions.GetRandomElement(options, _random);
             Interior prefab = option.Prefabs;
 
             if (!prefab) return;
@@ -68,6 +70,23 @@ namespace ProceduralInterior
         {
             int seed = unchecked((int)DateTime.Now.Ticks);
             _random = new System.Random(seed);
+        }
+
+        private void CacheInteriorSettingsIndex()
+        {
+            // We want to cache the Interior assets to the index that corresponds to InteriorSettings._settings
+            if(!_settings)
+                _settings = ProceduralInteriorSettings.TryGetSettings();
+
+            if (_interiorIndex == null)
+                _interiorIndex = new Dictionary<Guid, int>();
+            else
+                _interiorIndex.Clear();
+
+            List<InteriorSettings> intSettings = _settings.Interior;
+
+            for (int i = 0; i < intSettings.Count; i++)
+                _interiorIndex.Add(intSettings[i].Prefabs.AssetID, i);
         }
     }
 }

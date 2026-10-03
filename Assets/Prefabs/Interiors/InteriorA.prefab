@@ -245,7 +245,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e6b452712f6e154b9747f2cb03a5cdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralInterior.Interior
-  _drawDebug: 0
+  _assetID: f177bbc3-fa71-4d82-b711-50c07f8eae1b
   _splineToDebug: 0
-  applySeed: 0
-  debugSeed: 5000
+  _applySeed: 0
+  _debugSeed: 5000
+  _drawFloor: 0
+  _drawWall: 0
+  _drawReserved: 0
+  _spawnStructures: 0

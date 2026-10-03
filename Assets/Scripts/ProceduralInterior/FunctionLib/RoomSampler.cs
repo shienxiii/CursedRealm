@@ -36,11 +36,11 @@ namespace ProceduralInterior.FunctionLib
                     targetSize = validSamples.Count;
                 else
                     targetSize = Math.Clamp((validSamples.Count / roomCount) + interior.Random.Next(-roomSizeOffset, roomSizeOffset + 1),
-                                settings.MinSamplesPerRoom,
-                                validSamples.Count);
+                                                settings.MinSamplesPerRoom,
+                                                validSamples.Count);
 
-                List<Vector2Int> roomSamples = new List<Vector2Int>(); // samples to be cached as a room
-                List<Vector2Int> cardinalSamples = new List<Vector2Int>(); // samples directly next to the samples in roomSamples that are currently -1
+                List<Vector2Int> roomSamples     = new List<Vector2Int>(); // samples to be cached as a room
+                List<Vector2Int> cardinalSamples = new List<Vector2Int>(); // samples directly next to the samples in roomSamples that are currently unassigned
 
                 int roomIndex = roomCache.Count;
 
@@ -217,9 +217,9 @@ namespace ProceduralInterior.FunctionLib
                      *  bl---br
                      */
                     
-                    Vector3 tl = interior.GridPointToWorldPoint(x, z + 1, false);
-                    Vector3 br = interior.GridPointToWorldPoint(x + 1, z, false);
-                    Vector3 tr = interior.GridPointToWorldPoint(x + 1, z + 1, false);
+                    Vector3 tl = interior.GridPointToWorldPoint(x, z + 1, false); // top left
+                    Vector3 br = interior.GridPointToWorldPoint(x + 1, z, false); // bottom right
+                    Vector3 tr = interior.GridPointToWorldPoint(x + 1, z + 1, false); //top right
 
                     ParseForBorder(interior, new Vector3Range(br, tr), currentSample, new Vector2Int(x + 1, z), borders);
                     ParseForBorder(interior, new Vector3Range(tl, tr), currentSample, new Vector2Int(x, z + 1), borders);

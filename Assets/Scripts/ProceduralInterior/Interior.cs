@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ProceduralInterior.Types;
@@ -10,6 +11,9 @@ namespace ProceduralInterior
     [RequireComponent(typeof(SplineContainer))]
     public class Interior : MonoBehaviour
     {
+        // Asset ID
+        [SerializeField] private string _assetID;
+        
         // Components
         private SplineContainer _areas;
         
@@ -22,6 +26,7 @@ namespace ProceduralInterior
         private System.Random _random = null;
 
         /*** PUBLIC PROPERTIES ***/
+        public System.Guid  AssetID => System.Guid.Parse(_assetID);
         public Sample[,] Grid       => _grid;
         public List<Room> Rooms     => _rooms;
         public List<Border> Borders => _borders;
@@ -267,7 +272,14 @@ namespace ProceduralInterior
                 
             }
 
-            
-        #endif
+            private void OnValidate()
+            {
+                if (!Guid.TryParse(_assetID, out Guid test))
+                {
+                    Debug.Log("Invalid Asset ID, assigning new ID");
+                    _assetID = Guid.NewGuid().ToString();
+                }
+            }
+#endif
     }
 }
